@@ -177,6 +177,107 @@ class Trie:
         """Get the height of the trie."""
         return self._get_height_recursive(self.root)
     
+    def filter_by_rating(self, min_rating=None, max_rating=None):
+        """
+        Filter records by rating range.
+        
+        Args:
+            min_rating (float): Minimum rating (inclusive), None for no lower bound
+            max_rating (float): Maximum rating (inclusive), None for no upper bound
+            
+        Returns:
+            list: Filtered records
+            
+        Time Complexity: O(n) - Trie must collect and filter all records
+        Space Complexity: O(m) where m is number of results
+        """
+        if min_rating is None:
+            min_rating = float('-inf')
+        if max_rating is None:
+            max_rating = float('inf')
+        
+        return self.get_range(min_rating, max_rating)
+    
+    def filter_by_field(self, field_name, value=None, min_value=None, max_value=None, 
+                       condition='equals'):
+        """
+        Filter records by any non-indexed field (requires linear scan).
+        
+        Args:
+            field_name (str): Field name to filter by (e.g., 'recommended', 'cabin_flown')
+            value: Exact value to match (for condition='equals')
+            min_value: Minimum value (for condition='range')
+            max_value: Maximum value (for condition='range')
+            condition (str): 'equals', 'range', 'contains', 'greater_than', 'less_than'
+            
+        Returns:
+            list: Filtered records
+            
+        Time Complexity: O(n) - must scan all nodes
+        Space Complexity: O(m) where m is number of results
+        """
+        all_records = self.get_all_records()
+        results = []
+        
+        for record in all_records:
+            if field_name not in record:
+                continue
+            
+            field_value = record[field_name]
+            
+            if condition == 'equals' and field_value == value:
+                results.append(record)
+            elif condition == 'range' and min_value <= field_value <= max_value:
+                results.append(record)
+            elif condition == 'contains' and value and str(value).lower() in str(field_value).lower():
+                results.append(record)
+            elif condition == 'greater_than' and field_value > value:
+                results.append(record)
+            elif condition == 'less_than' and field_value < value:
+                results.append(record)
+        
+        return results
+    
+    def filter_multi_criteria(self, filters):
+        """
+        Apply multiple filters simultaneously.
+        
+        Args:
+            filters (dict): Dictionary of filter specifications
+                Example: {
+                    'rating': {'min': 4.0, 'max': 5.0},
+                    'recommended': {'value': True},
+                    'cabin_flown': {'value': 'Business Class'}
+                }
+        
+        Returns:
+            list: Records matching all filter criteria
+            
+        Time Complexity: O(n) - must scan all records
+        Space Complexity: O(m) where m is number of results
+        """
+        # Start with rating filter if present
+        if 'rating' in filters:
+            min_rating = filters['rating'].get('min', float('-inf'))
+            max_rating = filters['rating'].get('max', float('inf'))
+            results = self.filter_by_rating(min_rating, max_rating)
+        else:
+            # Get all records
+            results = self.get_all_records()
+        
+        # Apply additional filters sequentially
+        for field, criteria in filters.items():
+            if field == 'rating':
+                continue  # Already applied
+            
+            if 'value' in criteria:
+                results = [r for r in results if r.get(field) == criteria['value']]
+            elif 'min' in criteria and 'max' in criteria:
+                results = [r for r in results 
+                          if criteria['min'] <= r.get(field, float('-inf')) <= criteria['max']]
+        
+        return results
+    
     def __str__(self):
         """String representation of the Trie."""
         return f"Trie(size={self.size}, height={self.get_height()})"

@@ -1,50 +1,28 @@
 # TopK-Airlines Project
 
+CS201 Data Structures & Algorithms - Skytrax Dataset Analysis
+
 ## Overview
-The TopK-Airlines project is designed to experiment with various data structures and algorithms to efficiently maintain and retrieve the top-K airlines based on average ratings. This project aims to provide insights into the performance of different data structures when handling dynamic data.
+Comparative analysis of tree data structures (BST, AVL, Red-Black, Trie) with filtering implementation and performance benchmarking.
 
-## Project Structure
-```
-TopK-Airlines
-├── src
-│   ├── data_structures
-│   ├── algorithms
-│   └── utils
-├── experiments
-├── tests
-├── data
-└── results
-```
+## How to Run
 
-## Setup Instructions
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/TopK-Airlines.git
-   cd TopK-Airlines
-   ```
-
-2. **Create a virtual environment** (optional but recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Running Experiments
-To run the experiments, execute the following command:
+### 1. Install Dependencies
 ```bash
-python -m experiments.run_experiments
+pip install pandas numpy
 ```
-This will load the sample data, perform operations on the data structures, and save the results to `results/results.csv`.
 
-## Guidelines
-- Ensure that the data files are placed in the `data` directory.
-- Modify the `run_experiments.py` script to customize the experiments as needed.
-- Use the `tests` directory to add and run unit tests for your implementations.
+### 2. Build Trees (First Time Only)
+```bash
+python src/loaders/load_airline_trees.py
+```
 
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
+### 3. Run Filtering Tests
+```bash
+python tests/test_filtering.py
+```
+
+Results will be saved to: `results/filtering/airline/benchmark_results.csv`
+
+## Contributors
+CS201 G4T6
