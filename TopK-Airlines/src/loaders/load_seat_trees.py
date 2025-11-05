@@ -20,6 +20,7 @@ from data_structures.binary_search_tree import BinarySearchTree
 from data_structures.avl_tree import AVLTree
 from data_structures.red_black_tree import RedBlackTree
 from data_structures.trie import Trie
+from data_structures.hash_map import HashMap
 
 
 def load_seat_data_into_trees():
@@ -44,12 +45,14 @@ def load_seat_data_into_trees():
     avl = AVLTree()
     rbt = RedBlackTree()
     trie = Trie()
+    hashmap = HashMap()
     
     trees = {
         'BST': bst,
         'AVL': avl,
         'Red-Black': rbt,
-        'Trie': trie
+        'Trie': trie,
+        'HashMap': hashmap
     }
     
     # Insert data into each tree

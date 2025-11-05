@@ -57,6 +57,9 @@ def save_trees(trees, dataset_name, output_dir='data/trees'):
                     pickle.dump(tree, f, protocol=pickle.HIGHEST_PROTOCOL)
             finally:
                 sys.setrecursionlimit(old_limit)
+        except Exception as e:
+            print(f"ERROR: Failed to save {tree_name}: {e}")
+            continue  # Skip this tree and continue with others
         
         elapsed = time.time() - start_time
         
@@ -121,7 +124,7 @@ def load_trees(dataset_name, tree_types=None, input_dir='data/trees'):
             possible_types = ['Trie', 'TernarySearchTree', 'SortedArray']
         else:
             # Regular tree structures
-            possible_types = ['BST', 'AVL', 'Red-Black', 'Trie']
+            possible_types = ['BST', 'AVL', 'Red-Black', 'Trie', 'HashMap']
         
         # Check which files actually exist
         tree_types = []

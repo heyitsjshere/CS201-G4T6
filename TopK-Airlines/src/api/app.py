@@ -181,111 +181,254 @@ def autocomplete():
     })
 
 
-@app.route('/api/filter', methods=['POST'])
-def filter_by_rating():
-    """Filter by rating endpoint."""
+@app.route('/api/autocomplete/search', methods=['POST'])
+def autocomplete_search():
+    """Search for all rows matching a specific name (after autocomplete selection)."""
     data = request.json
+    search_name = data.get('name', '')
     dataset = data.get('dataset', 'airline')
-    min_rating = data.get('min_rating', 0.0)
-    max_rating = data.get('max_rating', 10.0)
-    structure_type = data.get('structure', 'AVL')
+    structure_type = data.get('structure', 'Trie')
     
-    # Load trees
-    trees = load_dataset_trees(dataset)
-    if not trees:
+    if not search_name:
         return jsonify({
-            'error': f'Trees not available for {dataset}',
+            'results': [],
+            'metrics': {
+                'time_ms': 0,
+                'comparisons': 0,
+                'memory_bytes': 0,
+                'results_count': 0
+            },
+            'success': True
+        })
+    
+    import time
+    start_time = time.perf_counter()
+    
+    # Load autocomplete structures
+    structures = load_autocomplete_structures(dataset)
+    if not structures:
+        return jsonify({
+            'error': f'Autocomplete structures not available for {dataset}',
             'success': False
         }), 404
     
-    # Map structure names
-    structure_map = {
-        'AVL': 'AVL',
-        'Red-Black': 'Red-Black',
-        'BST': 'BST',
-        'Trie': 'Trie'
-    }
-    
-    actual_structure_name = structure_map.get(structure_type, structure_type)
-    if actual_structure_name not in trees:
+    # Get the requested structure
+    if structure_type not in structures:
         return jsonify({
             'error': f'Structure {structure_type} not available',
             'success': False
         }), 404
     
-    tree = trees[actual_structure_name]
+    structure = structures[structure_type]
     
-    # Track performance
-    start_time = time.perf_counter()
+    # Search for exact name match - get all results matching the name
+    # We'll search for the exact name as a prefix to get all records
+    search_max_results = 100000
+    results, metrics = structure.search_prefix(search_name.lower().strip(), search_max_results)
     
-    # Perform range query with comparison tracking
-    comparisons = 0
-    
-    # Create a wrapper to track comparisons
-    class ComparisonTracker:
-        def __init__(self):
-            self.count = 0
-        
-        def add(self, n=1):
-            self.count += n
-    
-    tracker = ComparisonTracker()
-    
-    # Monkey-patch comparison tracking for range search
-    original_range_search = None
-    if hasattr(tree, '_range_search'):
-        original_range_search = tree._range_search
-        def tracked_range_search(node, min_rating, max_rating, results):
-            if node is None:
-                return
-            tracker.add(1)
-            if min_rating < node.rating:
-                tracked_range_search(node.left, min_rating, max_rating, results)
-            if min_rating <= node.rating <= max_rating:
-                results.append(node.data)
-                tracker.add(1)
-            if max_rating > node.rating:
-                tracked_range_search(node.right, min_rating, max_rating, results)
-        
-        # Temporarily replace method
-        tree._range_search = tracked_range_search
-    
-    # Perform query
-    if hasattr(tree, 'get_range'):
-        results = tree.get_range(min_rating, max_rating)
-    elif hasattr(tree, 'filter_by_rating'):
-        results = tree.filter_by_rating(min_rating, max_rating)
-    else:
-        results = []
-    
-    # Restore original method
-    if original_range_search:
-        tree._range_search = original_range_search
+    # Filter to exact name match (case-insensitive)
+    name_field = get_name_field(dataset)
+    exact_matches = []
+    for result in results:
+        result_name = result.get(name_field, '')
+        if result_name.lower().strip() == search_name.lower().strip():
+            exact_matches.append(result)
     
     elapsed = (time.perf_counter() - start_time) * 1000
-    comparisons = tracker.count if tracker.count > 0 else len(results) * 2  # Estimate
-    
-    # Get memory usage (approximate)
-    try:
-        from utils.performance_tracker import estimate_memory_usage_tree
-        if hasattr(tree, 'root'):
-            memory_usage = estimate_memory_usage_tree(tree.root)
-        else:
-            memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
-    except:
-        memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
     
     return jsonify({
-        'results': results,
-        'count': len(results),
+        'results': exact_matches,
         'metrics': {
             'time_ms': elapsed,
-            'comparisons': comparisons,
-            'memory_bytes': memory_usage,
-            'results_count': len(results)
+            'comparisons': metrics.get('comparisons', 0),
+            'memory_bytes': metrics.get('memory_bytes', 0),
+            'results_count': len(exact_matches)
         },
         'success': True
     })
+
+
+@app.route('/api/filter', methods=['POST'])
+def filter_by_rating():
+    """Filter by rating endpoint."""
+    # Start timing immediately to capture all overhead (loading, processing, serialization)
+    start_time = time.perf_counter()
+    
+    try:
+        data = request.json
+        if not data:
+            elapsed = (time.perf_counter() - start_time) * 1000
+            return jsonify({
+                'error': 'No data provided',
+                'success': False,
+                'metrics': {
+                    'time_ms': elapsed,
+                    'comparisons': 0,
+                    'memory_bytes': 0,
+                    'results_count': 0
+                }
+            }), 400
+            
+        dataset = data.get('dataset', 'airline')
+        min_rating = data.get('min_rating', 0.0)
+        max_rating = data.get('max_rating', 10.0)
+        structure_type = data.get('structure', 'AVL')
+        limit = data.get('limit', None)  # Optional limit
+        
+        # Load trees (this may take time if not already loaded)
+        trees = load_dataset_trees(dataset)
+        if not trees:
+            elapsed = (time.perf_counter() - start_time) * 1000
+            return jsonify({
+                'error': f'Trees not available for {dataset}',
+                'success': False,
+                'metrics': {
+                    'time_ms': elapsed,
+                    'comparisons': 0,
+                    'memory_bytes': 0,
+                    'results_count': 0
+                }
+            }), 404
+        
+        # Map structure names
+        structure_map = {
+            'AVL': 'AVL',
+            'Red-Black': 'Red-Black',
+            'BST': 'BST',
+            'Trie': 'Trie',
+            'HashMap': 'HashMap'
+        }
+        
+        actual_structure_name = structure_map.get(structure_type, structure_type)
+        if actual_structure_name not in trees:
+            elapsed = (time.perf_counter() - start_time) * 1000
+            return jsonify({
+                'error': f'Structure {structure_type} not available. Available structures: {list(trees.keys())}',
+                'success': False,
+                'metrics': {
+                    'time_ms': elapsed,
+                    'comparisons': 0,
+                    'memory_bytes': 0,
+                    'results_count': 0
+                }
+            }), 404
+        
+        tree = trees[actual_structure_name]
+        
+        # Perform range query with comparison tracking
+        comparisons = 0
+        
+        # Create a wrapper to track comparisons
+        class ComparisonTracker:
+            def __init__(self):
+                self.count = 0
+            
+            def add(self, n=1):
+                self.count += n
+        
+        tracker = ComparisonTracker()
+        
+        # Monkey-patch comparison tracking for range search
+        original_range_search = None
+        if hasattr(tree, '_range_search'):
+            original_range_search = tree._range_search
+            
+            # Check if tree uses NIL sentinel (Red-Black tree) or None (AVL/BST)
+            uses_nil = hasattr(tree, 'NIL')
+            
+            def tracked_range_search(node, min_rating, max_rating, results):
+                # Handle both NIL sentinel (Red-Black) and None (AVL/BST)
+                if uses_nil:
+                    if node == tree.NIL:
+                        return
+                else:
+                    if node is None:
+                        return
+                
+                tracker.add(1)
+                if min_rating < node.rating:
+                    tracked_range_search(node.left, min_rating, max_rating, results)
+                if min_rating <= node.rating <= max_rating:
+                    results.append(node.data)
+                    tracker.add(1)
+                if max_rating > node.rating:
+                    tracked_range_search(node.right, min_rating, max_rating, results)
+            
+            # Temporarily replace method
+            tree._range_search = tracked_range_search
+        
+        # Perform query
+        # HashMap doesn't have _range_search, so skip monkey-patching for it
+        if structure_type == 'HashMap':
+            # HashMap uses filter_by_rating directly, which tracks comparisons internally
+            # Reset comparisons before query to get accurate count for this query only
+            if hasattr(tree, 'reset_comparisons'):
+                tree.reset_comparisons()
+            if hasattr(tree, 'filter_by_rating'):
+                results = tree.filter_by_rating(min_rating, max_rating)
+                # Get comparisons from HashMap's internal counter
+                comparisons = tree.get_total_comparisons() if hasattr(tree, 'get_total_comparisons') else len(results) * 2
+            else:
+                results = []
+        elif hasattr(tree, 'get_range'):
+            results = tree.get_range(min_rating, max_rating)
+        elif hasattr(tree, 'filter_by_rating'):
+            results = tree.filter_by_rating(min_rating, max_rating)
+        else:
+            results = []
+        
+        # Restore original method
+        if original_range_search:
+            tree._range_search = original_range_search
+        
+        # Use tracked comparisons if available, otherwise estimate
+        if structure_type != 'HashMap':
+            comparisons = tracker.count if tracker.count > 0 else len(results) * 2  # Estimate
+        
+        # Apply limit if specified (this is part of the processing time)
+        if limit and limit > 0:
+            results = results[:limit]
+        
+        # Get memory usage (approximate) - still part of processing
+        try:
+            from utils.performance_tracker import estimate_memory_usage_tree
+            if hasattr(tree, 'root'):
+                memory_usage = estimate_memory_usage_tree(tree.root)
+            else:
+                memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
+        except:
+            memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
+        
+        # Calculate elapsed time after all processing (including limit, memory calculation)
+        # This captures the full user-perceived time
+        elapsed = (time.perf_counter() - start_time) * 1000
+        
+        return jsonify({
+            'results': results,
+            'count': len(results),
+            'metrics': {
+                'time_ms': elapsed,
+                'comparisons': comparisons,
+                'memory_bytes': memory_usage,
+                'results_count': len(results)
+            },
+            'success': True
+        })
+    except Exception as e:
+        import traceback
+        elapsed = (time.perf_counter() - start_time) * 1000
+        print(f"Error in filter_by_rating: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'error': f'Internal server error: {str(e)}',
+            'success': False,
+            'metrics': {
+                'time_ms': elapsed,
+                'comparisons': 0,
+                'memory_bytes': 0,
+                'results_count': 0
+            }
+        }), 500
 
 
 @app.route('/api/sort', methods=['POST'])
