@@ -1,0 +1,164 @@
+{
+  "total_datasets": 4,
+  "analysis_timestamp": "2025-11-05T17:40:56.927673",
+  "dataset_summaries": {
+    "airline": {
+      "size": 27284,
+      "trees_available": [
+        "AVL",
+        "Red-Black",
+        "Trie"
+      ],
+      "tree_heights": {
+        "AVL": 16,
+        "Red-Black": 25,
+        "Trie": 3
+      }
+    },
+    "airport": {
+      "size": 10817,
+      "trees_available": [
+        "AVL",
+        "Red-Black",
+        "Trie"
+      ],
+      "tree_heights": {
+        "AVL": 14,
+        "Red-Black": 22,
+        "Trie": 3
+      }
+    },
+    "lounge": {
+      "size": 1470,
+      "trees_available": [
+        "BST",
+        "AVL",
+        "Red-Black",
+        "Trie"
+      ],
+      "tree_heights": {
+        "BST": 370,
+        "AVL": 12,
+        "Red-Black": 17,
+        "Trie": 3
+      }
+    },
+    "seat": {
+      "size": 1209,
+      "trees_available": [
+        "BST",
+        "AVL",
+        "Red-Black",
+        "Trie"
+      ],
+      "tree_heights": {
+        "BST": 350,
+        "AVL": 12,
+        "Red-Black": 15,
+        "Trie": 3
+      }
+    }
+  },
+  "tree_comparisons": {
+    "BST": {
+      "datasets": [
+        "lounge",
+        "seat"
+      ],
+      "avg_search_time": [
+        0.1294999965466559,
+        0.07261999708134681
+      ],
+      "avg_topk_time": [
+        0.5282666679704562,
+        0.3598333375218014
+      ],
+      "avg_range_time": [
+        0.3389599994989112,
+        0.14786000247113407
+      ]
+    },
+    "Trie": {
+      "datasets": [
+        "airline",
+        "airport",
+        "lounge",
+        "seat"
+      ],
+      "avg_search_time": [
+        0.03012000088347122,
+        0.012240000069141388,
+        0.0045100023271515965,
+        0.0031800023862160742
+      ],
+      "avg_topk_time": [
+        3.022666666462707,
+        1.0987333274291207,
+        0.17129999954098216,
+        0.12856667065837732
+      ],
+      "avg_range_time": [
+        3.282980003859848,
+        1.0604200040688738,
+        0.13034000003244728,
+        0.10400000028312206
+      ]
+    },
+    "AVL": {
+      "datasets": [
+        "airline",
+        "airport",
+        "lounge",
+        "seat"
+      ],
+      "avg_search_time": [
+        1.7332799994619563,
+        0.5305399958160706,
+        0.10800000018207356,
+        0.046059997112024575
+      ],
+      "avg_topk_time": [
+        15.980100002101002,
+        7.237333333857047,
+        0.5070666714649027,
+        0.37303333131906885
+      ],
+      "avg_range_time": [
+        4.266600002301857,
+        1.9174600020051003,
+        0.2716999966651201,
+        0.16744000022299588
+      ]
+    },
+    "Red-Black": {
+      "datasets": [
+        "airline",
+        "airport",
+        "lounge",
+        "seat"
+      ],
+      "avg_search_time": [
+        1.3737999979639426,
+        0.48712999996496364,
+        0.135339998814743,
+        0.05663999472744763
+      ],
+      "avg_topk_time": [
+        16.45983333097926,
+        7.274033327121288,
+        0.6177333367910857,
+        0.41386666513668996
+      ],
+      "avg_range_time": [
+        4.570820002118126,
+        2.483940002275631,
+        0.3858799929730594,
+        0.19595999910961837
+      ]
+    }
+  },
+  "key_findings": [
+    "Fastest for Search: Trie (0.012513 ms avg)",
+    "Fastest for Top K: BST (0.444050 ms avg)"
+  ]
+}

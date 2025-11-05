@@ -34,12 +34,12 @@ def load_airline_data_into_trees():
     print("=" * 80)
     
     # Load cleaned airline data
-    print("\n📂 Loading airline data...")
+    print("\nLoading airline data...")
     airline_df = load_cleaned_data('airline')
-    print(f"✓ Loaded {len(airline_df):,} airline records")
+    print(f"Loaded {len(airline_df):,} airline records")
     
     # Initialize all tree structures
-    print("\n🌳 Initializing tree structures...")
+    print("\nInitializing tree structures...")
     bst = BinarySearchTree()
     avl = AVLTree()
     rbt = RedBlackTree()
@@ -53,7 +53,7 @@ def load_airline_data_into_trees():
     }
     
     # Insert data into each tree
-    print("\n⏳ Inserting records into trees...")
+    print("\nInserting records into trees...")
     print("-" * 80)
     
     # Convert dataframe to list of tuples
@@ -78,7 +78,7 @@ def load_airline_data_into_trees():
               f"Time: {elapsed:.3f}s")
     
     print("-" * 80)
-    print(f"✓ All {len(airline_df):,} records inserted into all trees")
+    print(f"All {len(airline_df):,} records inserted into all trees")
     
     return trees, airline_df
 
@@ -96,7 +96,7 @@ def demonstrate_tree_operations(trees, df):
     print("=" * 80)
     
     # Demo 1: Search for specific rating
-    print("\n1️⃣  SEARCH: Find all records with rating 5.0")
+    print("\n[1] SEARCH: Find all records with rating 5.0")
     print("-" * 80)
     target_rating = 5.0
     
@@ -108,7 +108,7 @@ def demonstrate_tree_operations(trees, df):
         print(f"{tree_name:12} | Found: {len(results):4} records | Time: {elapsed:.6f}s")
     
     # Demo 2: Get top K highest rated
-    print("\n2️⃣  TOP-K: Get top 10 highest rated airlines")
+    print("\n[2] TOP-K: Get top 10 highest rated airlines")
     print("-" * 80)
     k = 10
     
@@ -129,7 +129,7 @@ def demonstrate_tree_operations(trees, df):
         print(f"   {i}. {record['airline_name'][:40]:40} | Rating: {record['overall_rating']:.1f}")
     
     # Demo 3: Range search
-    print("\n3️⃣  RANGE: Find all records with rating between 4.0 and 5.0")
+    print("\n[3] RANGE: Find all records with rating between 4.0 and 5.0")
     print("-" * 80)
     min_rating, max_rating = 4.0, 5.0
     
@@ -156,26 +156,26 @@ def main():
             for name, tree in trees.items():
                 # Skip BST if height is too large for pickle
                 if name == 'BST' and tree.get_height() > 1000:
-                    print(f"\n⚠️  Skipping {name} save (height {tree.get_height()} too large for pickle)")
+                    print(f"\nWARNING: Skipping {name} save (height {tree.get_height()} too large for pickle)")
                 else:
                     trees_to_save[name] = tree
             
             if trees_to_save:
                 save_trees(trees_to_save, 'airline')
         except Exception as save_error:
-            print(f"\n⚠️  Warning: Could not save trees to disk: {save_error}")
+            print(f"\nWARNING: Could not save trees to disk: {save_error}")
             print("   Trees are still available in memory for current session.")
         
         print("\n" + "=" * 80)
-        print("✅ AIRLINE DATA SUCCESSFULLY LOADED INTO ALL TREE STRUCTURES!")
+        print("SUCCESS: AIRLINE DATA SUCCESSFULLY LOADED INTO ALL TREE STRUCTURES!")
         print("=" * 80)
         
-        print("\n📋 Summary:")
+        print("\nSummary:")
         print(f"   - Total records: {len(df):,}")
         print(f"   - Tree structures: {len(trees)}")
         print(f"   - Columns: {list(df.columns)}")
         
-        print("\n💡 You can now use these trees for:")
+        print("\nYou can now use these trees for:")
         print("   - Fast search by rating")
         print("   - Top-K queries")
         print("   - Range queries")
@@ -184,11 +184,11 @@ def main():
         return trees, df
         
     except FileNotFoundError as e:
-        print(f"\n❌ ERROR: {e}")
-        print("\n⚠️  Please run the EDA/explore.ipynb notebook first!")
+        print(f"\nERROR: {e}")
+        print("\nPlease run the EDA/explore.ipynb notebook first!")
         return None, None
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\nERROR: Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         return None, None

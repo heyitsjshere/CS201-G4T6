@@ -69,7 +69,7 @@ def save_results_to_csv(results: dict, output_dir: Path):
     csv_path = output_dir / 'filtering_benchmark_results.csv'
     df.to_csv(csv_path, index=False)
     
-    print(f"\n💾 Results saved to: {csv_path}")
+    print(f"\nResults saved to: {csv_path}")
     
     return df
 
@@ -89,7 +89,7 @@ def save_results_to_json(results: dict, output_dir: Path):
     with open(json_path, 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"💾 Detailed results saved to: {json_path}")
+    print(f"Detailed results saved to: {json_path}")
 
 
 def generate_report(df: pd.DataFrame, output_dir: Path):
@@ -183,7 +183,7 @@ def run_dataset_experiments(dataset_name: str, output_dir: Path):
     
     try:
         trees = load_trees(dataset_name)
-        print(f"\n✓ Loaded {len(trees)} tree structures: {list(trees.keys())}")
+        print(f"\nLoaded {len(trees)} tree structures: {list(trees.keys())}")
         
         # Run comprehensive benchmarks
         results = run_comprehensive_benchmark(trees, dataset_name)
@@ -202,13 +202,13 @@ def run_dataset_experiments(dataset_name: str, output_dir: Path):
         return results, df
         
     except FileNotFoundError as e:
-        print(f"\n❌ Trees not found for {dataset_name}")
+        print(f"\nERROR: Trees not found for {dataset_name}")
         print(f"   Error: {e}")
         print(f"   Please run the appropriate loader first:")
         print(f"   python src/loaders/load_{dataset_name}_trees.py")
         return None, None
     except Exception as e:
-        print(f"\n❌ Error running experiments for {dataset_name}: {e}")
+        print(f"\nERROR: Error running experiments for {dataset_name}: {e}")
         import traceback
         traceback.print_exc()
         return None, None
@@ -234,8 +234,8 @@ def main():
     available = list_saved_trees()
     
     if not available:
-        print("❌ No saved trees found!")
-        print("\n💡 Please run tree loaders first:")
+        print("ERROR: No saved trees found!")
+        print("\nPlease run tree loaders first:")
         print("   python src/loaders/load_airline_trees.py")
         print("   python src/loaders/load_airport_trees.py")
         print("   python src/loaders/load_lounge_trees.py")
@@ -265,8 +265,8 @@ def main():
         combined_df = pd.concat(all_dataframes, ignore_index=True)
         combined_df.to_csv(output_dir / 'all_datasets_combined.csv', index=False)
         
-        print(f"\n✅ All experiments completed!")
-        print(f"📊 Results saved to: {output_dir}")
+        print(f"\nSUCCESS: All experiments completed!")
+        print(f"Results saved to: {output_dir}")
         print("\nGenerated files:")
         print(f"  • all_datasets_combined.csv - Combined results from all datasets")
         
@@ -276,7 +276,7 @@ def main():
             print(f"    - filtering_benchmark_detailed.json")
             print(f"    - filtering_benchmark_report.txt")
     else:
-        print("\n❌ No experiments were successfully completed.")
+        print("\nERROR: No experiments were successfully completed.")
 
 
 if __name__ == "__main__":

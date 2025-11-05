@@ -184,9 +184,9 @@ if __name__ == "__main__":
         print("  3. Implement Top-K algorithms using the prepared data")
         
     except FileNotFoundError as e:
-        print(f"\n❌ ERROR: {e}")
-        print("\n⚠️  Please run the EDA/explore.ipynb notebook first to generate cleaned datasets!")
+        print(f"\nERROR: {e}")
+        print("\nPlease run the EDA/explore.ipynb notebook first to generate cleaned datasets!")
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\nERROR: Unexpected error: {e}")
         import traceback
         traceback.print_exc()

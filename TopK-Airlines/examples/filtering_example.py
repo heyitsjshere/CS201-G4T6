@@ -26,14 +26,14 @@ def example_1_basic_rating_filter():
     tree = trees['AVL']
     
     # Filter high-rated airlines
-    print("\n🔍 Filtering airlines with rating 4.5-5.0...")
+    print("\nFiltering airlines with rating 4.5-5.0...")
     high_rated = tree.filter_by_rating(min_rating=4.5, max_rating=5.0)
     
-    print(f"\n✓ Found {len(high_rated):,} highly-rated airlines")
+    print(f"\nFound {len(high_rated):,} highly-rated airlines")
     print(f"  Dataset size: {tree.get_size():,} records")
     print(f"  Selectivity: {len(high_rated) / tree.get_size() * 100:.2f}%")
     
-    print("\n📊 Top 5 results:")
+    print("\nTop 5 results:")
     for i, record in enumerate(high_rated[:5], 1):
         print(f"  {i}. {record['airline_name'][:40]:40} | Rating: {record['overall_rating']:.1f}")
 
@@ -49,10 +49,10 @@ def example_2_field_filter():
     tree = trees['AVL']
     
     # Filter recommended airlines
-    print("\n🔍 Filtering recommended airlines only...")
+    print("\nFiltering recommended airlines only...")
     recommended = tree.filter_by_field('recommended', value=True, condition='equals')
     
-    print(f"\n✓ Found {len(recommended):,} recommended airlines")
+    print(f"\nFound {len(recommended):,} recommended airlines")
     print(f"  Dataset size: {tree.get_size():,} records")
     print(f"  Selectivity: {len(recommended) / tree.get_size() * 100:.2f}%")
     
@@ -60,7 +60,7 @@ def example_2_field_filter():
     ratings = [r['overall_rating'] for r in recommended]
     avg_rating = sum(ratings) / len(ratings) if ratings else 0
     
-    print(f"\n📊 Statistics:")
+    print(f"\nStatistics:")
     print(f"  Average rating: {avg_rating:.2f}")
     print(f"  Max rating: {max(ratings):.1f}")
     print(f"  Min rating: {min(ratings):.1f}")
@@ -77,10 +77,10 @@ def example_3_multi_criteria():
     tree = trees['AVL']
     
     # Complex filter: high-rated, recommended, Business Class
-    print("\n🔍 Applying multi-criteria filter...")
+    print("\nApplying multi-criteria filter...")
     print("  Criteria:")
-    print("    • Rating: 4.5 - 5.0")
-    print("    • Recommended: Yes")
+    print("    - Rating: 4.5 - 5.0")
+    print("    - Recommended: Yes")
     
     filters = {
         'rating': {'min': 4.5, 'max': 5.0},
@@ -89,11 +89,11 @@ def example_3_multi_criteria():
     
     results = tree.filter_multi_criteria(filters)
     
-    print(f"\n✓ Found {len(results):,} matching records")
+    print(f"\nFound {len(results):,} matching records")
     print(f"  Dataset size: {tree.get_size():,} records")
     print(f"  Selectivity: {len(results) / tree.get_size() * 100:.2f}%")
     
-    print("\n📊 Sample results:")
+    print("\nSample results:")
     for i, record in enumerate(results[:3], 1):
         print(f"  {i}. {record['airline_name'][:35]:35} | "
               f"Rating: {record['overall_rating']:.1f} | "
@@ -111,7 +111,7 @@ def example_4_benchmark_single_tree():
     tree = trees['AVL']
     
     # Create benchmark
-    print("\n⏱️  Benchmarking AVL tree filtering...")
+    print("\nBenchmarking AVL tree filtering...")
     benchmark = FilterBenchmark(tree, 'AVL', 'airline')
     
     # Benchmark rating filter
@@ -121,7 +121,7 @@ def example_4_benchmark_single_tree():
     time_stats = result['time_complexity']
     space_stats = result['space_complexity']
     
-    print(f"\n📊 Performance Metrics:")
+    print(f"\nPerformance Metrics:")
     print(f"  Time Complexity:")
     print(f"    Average: {time_stats['avg_time_ms']:.3f}ms")
     print(f"    Min:     {time_stats['min_time_ms']:.3f}ms")
@@ -147,7 +147,7 @@ def example_5_compare_trees():
     # Load trees
     trees = load_trees('airline')
     
-    print("\n⚖️  Comparing rating filter performance across all trees...")
+    print("\nComparing rating filter performance across all trees...")
     print("  Filter: Rating 4.5 - 5.0 (high selectivity)")
     print("-" * 80)
     
@@ -161,7 +161,7 @@ def example_5_compare_trees():
     # Sort by time
     results.sort(key=lambda x: x['time_complexity']['avg_time_ms'])
     
-    print("\n🏆 Performance Ranking:")
+    print("\nPerformance Ranking:")
     print(f"{'Rank':5} | {'Tree':12} | {'Avg Time (ms)':15} | {'Memory (KB)':12} | {'Results':10}")
     print("-" * 80)
     
@@ -175,7 +175,7 @@ def example_5_compare_trees():
     
     # Show winner
     winner = results[0]
-    print(f"\n🥇 Fastest: {winner['tree_type']} at {winner['time_complexity']['avg_time_ms']:.3f}ms")
+    print(f"\nFastest: {winner['tree_type']} at {winner['time_complexity']['avg_time_ms']:.3f}ms")
 
 
 def example_6_selectivity_impact():
@@ -189,7 +189,7 @@ def example_6_selectivity_impact():
     tree = trees['AVL']
     benchmark = FilterBenchmark(tree, 'AVL', 'airline')
     
-    print("\n📈 Testing different selectivity levels...")
+    print("\nTesting different selectivity levels...")
     print("-" * 80)
     
     test_ranges = [
@@ -210,7 +210,7 @@ def example_6_selectivity_impact():
         
         print(f"{desc:25} | {min_r:.1f} - {max_r:.1f}    | {count:10,} | {time_ms:12.3f} | {percent:7.2f}%")
     
-    print("\n💡 Observation: Higher selectivity (fewer results) = faster execution")
+    print("\nObservation: Higher selectivity (fewer results) = faster execution")
 
 
 def main():
@@ -219,10 +219,10 @@ def main():
     print("FILTERING EXAMPLES - TREE DATA STRUCTURES")
     print("=" * 80)
     print("\nThis demonstrates filtering functionality across all tree types:")
-    print("  • Binary Search Tree (BST)")
-    print("  • AVL Tree")
-    print("  • Red-Black Tree")
-    print("  • Trie")
+    print("  - Binary Search Tree (BST)")
+    print("  - AVL Tree")
+    print("  - Red-Black Tree")
+    print("  - Trie")
     
     try:
         # Run examples
@@ -234,20 +234,20 @@ def main():
         example_6_selectivity_impact()
         
         print("\n" + "=" * 80)
-        print("✅ ALL EXAMPLES COMPLETED!")
+        print("SUCCESS: ALL EXAMPLES COMPLETED!")
         print("=" * 80)
         
-        print("\n💡 Next steps:")
+        print("\nNext steps:")
         print("  1. Run full experiments: python experiments/run_experiments.py")
         print("  2. Check results: results/filtering/")
         print("  3. Read docs: FILTERING_QUICK_REFERENCE.md")
         
     except FileNotFoundError as e:
-        print(f"\n❌ ERROR: {e}")
-        print("\n⚠️  Please build trees first:")
+        print(f"\nERROR: {e}")
+        print("\nPlease build trees first:")
         print("   python src/loaders/load_airline_trees.py")
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\nERROR: Unexpected error: {e}")
         import traceback
         traceback.print_exc()
 

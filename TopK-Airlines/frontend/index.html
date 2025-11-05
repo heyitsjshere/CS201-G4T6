@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Structures Performance Comparison - TopK Airlines</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: #f0f0f0;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .metric-card h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .metric-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-card .unit {
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .results-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .results-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .comparison-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .structure-toggle {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            background: #e9ecef;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .toggle-btn:hover {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Data Structures Performance Comparison</h1>
+            <p>Compare different data structures for autocomplete, filtering, and sorting operations</p>
+        </div>
+
+        <div class="content">
+            <!-- Dataset Selection -->
+            <div class="section">
+                <h2>📊 Dataset Selection</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Select Dataset:</label>
+                        <select id="datasetSelect">
+                            <option value="airline">Airline</option>
+                            <option value="airport">Airport</option>
+                            <option value="lounge">Lounge</option>
+                            <option value="seat">Seat</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Problem 1: Autocomplete -->
+            <div class="section">
+                <h2>1️⃣ Predictive Search (Autocomplete)</h2>
+                <div class="structure-toggle" id="autocompleteStructures"></div>
+                <div class="controls">
+                    <div class="control-group search-box">
+                        <label>Search:</label>
+                        <input type="text" id="autocompleteInput" placeholder="Type to search (e.g., 'Sin' for Singapore Airlines)">
+                        <div class="search-results" id="autocompleteResults"></div>
+                    </div>
+                </div>
+                <div class="metrics" id="autocompleteMetrics"></div>
+            </div>
+
+            <!-- Problem 2: Filter by Rating -->
+            <div class="section">
+                <h2>2️⃣ Filter by Overall Rating</h2>
+                <div class="structure-toggle" id="filterStructures"></div>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Min Rating:</label>
+                        <input type="number" id="minRating" min="0" max="10" step="0.1" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label>Max Rating:</label>
+                        <input type="number" id="maxRating" min="0" max="10" step="0.1" value="10">
+                    </div>
+                    <div class="control-group">
+                        <label>&nbsp;</label>
+                        <button class="btn" onclick="applyFilter()">Apply Filter</button>
+                    </div>
+                </div>
+                <div class="metrics" id="filterMetrics"></div>
+                <div id="filterResults"></div>
+            </div>
+
+            <!-- Problem 3: Sort by Rating -->
+            <div class="section">
+                <h2>3️⃣ Sort by Overall Rating</h2>
+                <div class="structure-toggle" id="sortStructures"></div>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Sort Order:</label>
+                        <select id="sortOrder">
+                            <option value="ascending">Ascending (Low to High)</option>
+                            <option value="descending" selected>Descending (High to Low)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Result Limit:</label>
+                        <input type="number" id="sortLimit" min="10" max="10000" value="100">
+                    </div>
+                    <div class="control-group">
+                        <label>&nbsp;</label>
+                        <button class="btn" onclick="applySort()">Sort Data</button>
+                    </div>
+                </div>
+                <div class="metrics" id="sortMetrics"></div>
+                <div id="sortResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use relative URL so it works with any port
+        const API_BASE = '/api';
+        let currentDataset = 'airline';
+        let currentAutocompleteStructure = 'Trie';
+        let currentFilterStructure = 'AVL';
+        let currentSortStructure = 'tree_inorder';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStructureInfo();
+            setupAutocomplete();
+            setupStructureToggles();
+        });
+
+        // Load structure information
+        async function loadStructureInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/structure-info?dataset=${currentDataset}`);
+                const data = await response.json();
+                
+                // Populate structure toggles
+                populateToggles('autocompleteStructures', data.autocomplete_structures, 'autocomplete');
+                populateToggles('filterStructures', data.filter_structures, 'filter');
+                populateToggles('sortStructures', [
+                    {name: 'Tree In-order', value: 'tree_inorder'},
+                    {name: 'Quick Sort', value: 'quicksort'},
+                    {name: 'Merge Sort', value: 'mergesort'},
+                    {name: 'Timsort', value: 'timsort'}
+                ], 'sort');
+            } catch (error) {
+                console.error('Error loading structure info:', error);
+            }
+        }
+
+        function populateToggles(containerId, structures, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            structures.forEach((structure, index) => {
+                const btn = document.createElement('button');
+                btn.className = `toggle-btn ${index === 0 ? 'active' : ''}`;
+                
+                // Handle both string and object formats
+                let structureValue, structureName;
+                if (typeof structure === 'object') {
+                    structureValue = structure.value;
+                    structureName = structure.name;
+                } else {
+                    structureValue = structure;
+                    structureName = structure;
+                }
+                
+                btn.textContent = structureName;
+                btn.onclick = () => {
+                    document.querySelectorAll(`#${containerId} .toggle-btn`).forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if (type === 'autocomplete') currentAutocompleteStructure = structureValue;
+                    else if (type === 'filter') currentFilterStructure = structureValue;
+                    else if (type === 'sort') currentSortStructure = structureValue;
+                };
+                container.appendChild(btn);
+            });
+            
+            // Set initial value
+            if (structures.length > 0) {
+                const firstStructure = typeof structures[0] === 'object' ? structures[0].value : structures[0];
+                if (type === 'autocomplete') currentAutocompleteStructure = firstStructure;
+                else if (type === 'filter') currentFilterStructure = firstStructure;
+                else if (type === 'sort') currentSortStructure = firstStructure;
+            }
+        }
+
+        function setupStructureToggles() {
+            document.getElementById('datasetSelect').addEventListener('change', async (e) => {
+                currentDataset = e.target.value;
+                await loadStructureInfo();
+            });
+        }
+
+        // Autocomplete functionality
+        function setupAutocomplete() {
+            const input = document.getElementById('autocompleteInput');
+            const results = document.getElementById('autocompleteResults');
+            
+            let debounceTimer;
+            input.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const prefix = e.target.value.trim();
+                
+                // Show results for any input (even single character)
+                if (prefix.length < 1) {
+                    results.classList.remove('active');
+                    return;
+                }
+                
+                debounceTimer = setTimeout(() => {
+                    performAutocomplete(prefix);
+                }, 300);
+            });
+        }
+
+        async function performAutocomplete(prefix) {
+            const resultsDiv = document.getElementById('autocompleteResults');
+            const metricsDiv = document.getElementById('autocompleteMetrics');
+            
+            try {
+                const response = await fetch(`${API_BASE}/autocomplete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prefix: prefix,
+                        dataset: currentDataset,
+                        structure: currentAutocompleteStructure,
+                        max_results: 10000  // High limit to get all results
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Display results
+                    resultsDiv.innerHTML = '';
+                    if (data.results.length > 0) {
+                        data.results.forEach(result => {
+                            const item = document.createElement('div');
+                            item.className = 'search-result-item';
+                            const rating = typeof result.rating === 'number' ? result.rating.toFixed(2) : parseFloat(result.rating || 0).toFixed(2);
+                            item.textContent = `${result.name} (Average Rating: ${rating})`;
+                            item.onclick = () => {
+                                document.getElementById('autocompleteInput').value = result.name;
+                                resultsDiv.classList.remove('active');
+                            };
+                            resultsDiv.appendChild(item);
+                        });
+                        resultsDiv.classList.add('active');
+                    } else {
+                        resultsDiv.classList.remove('active');
+                    }
+                    
+                    // Display metrics
+                    displayMetrics(metricsDiv, data.metrics, 'Autocomplete');
+                }
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+            }
+        }
+
+        // Filter functionality
+        async function applyFilter() {
+            const metricsDiv = document.getElementById('filterMetrics');
+            const resultsDiv = document.getElementById('filterResults');
+            
+            const minRating = parseFloat(document.getElementById('minRating').value);
+            const maxRating = parseFloat(document.getElementById('maxRating').value);
+            
+            resultsDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/filter`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset: currentDataset,
+                        min_rating: minRating,
+                        max_rating: maxRating,
+                        structure: currentFilterStructure
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayMetrics(metricsDiv, data.metrics, 'Filter');
+                    displayResults(resultsDiv, data.results.slice(0, 50), 'Filter Results');
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Sort functionality
+        async function applySort() {
+            const metricsDiv = document.getElementById('sortMetrics');
+            const resultsDiv = document.getElementById('sortResults');
+            
+            const order = document.getElementById('sortOrder').value;
+            const limit = parseInt(document.getElementById('sortLimit').value);
+            
+            resultsDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            try {
+                // For tree_inorder, we need to use a tree structure
+                const structure = currentSortStructure === 'tree_inorder' ? currentFilterStructure : 'AVL';
+                
+                const response = await fetch(`${API_BASE}/sort`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset: currentDataset,
+                        structure: structure,
+                        algorithm: currentSortStructure,
+                        reverse: order === 'descending',
+                        limit: limit
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayMetrics(metricsDiv, data.metrics, 'Sort');
+                    displayResults(resultsDiv, data.results.slice(0, 50), 'Sorted Results');
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Display metrics
+        function displayMetrics(container, metrics, title) {
+            container.innerHTML = `
+                <div class="metric-card">
+                    <h3>Time</h3>
+                    <div class="value">${metrics.time_ms.toFixed(4)}<span class="unit"> ms</span></div>
+                </div>
+                <div class="metric-card">
+                    <h3>Comparisons</h3>
+                    <div class="value">${metrics.comparisons.toLocaleString()}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Memory</h3>
+                    <div class="value">${(metrics.memory_bytes / 1024).toFixed(2)}<span class="unit"> KB</span></div>
+                </div>
+                <div class="metric-card">
+                    <h3>Results</h3>
+                    <div class="value">${metrics.results_count || metrics.count || 0}</div>
+                </div>
+            `;
+        }
+
+        // Display results table
+        function displayResults(container, results, title) {
+            if (!results || results.length === 0) {
+                container.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+            
+            const nameField = currentDataset === 'airline' ? 'airline_name' :
+                             currentDataset === 'airport' ? 'airport_name' :
+                             currentDataset === 'lounge' ? 'lounge_name' : 'airline_name';
+            
+            let html = `<h3>${title} (showing ${Math.min(results.length, 50)} of ${results.length})</h3>`;
+            html += '<table class="results-table"><thead><tr>';
+            html += '<th>Name</th><th>Overall Rating</th><th>Details</th>';
+            html += '</tr></thead><tbody>';
+            
+            results.slice(0, 50).forEach(result => {
+                const name = result[nameField] || result.name || 'N/A';
+                const rating = result.overall_rating || 0;
+                html += `<tr><td>${name}</td><td>${rating}</td><td>${JSON.stringify(result).substring(0, 100)}...</td></tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+

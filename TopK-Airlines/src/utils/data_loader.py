@@ -55,7 +55,7 @@ def load_cleaned_data(dataset_name: Optional[str] = None) -> Union[pd.DataFrame,
         
         print(f"Loading cleaned dataset: {dataset_name}")
         df = pd.read_csv(file_path)
-        print(f"✓ Loaded {dataset_name}: {df.shape[0]:,} rows × {df.shape[1]} columns")
+        print(f"Loaded {dataset_name}: {df.shape[0]:,} rows × {df.shape[1]} columns")
         return df
     
     # Load all cleaned datasets
@@ -75,7 +75,7 @@ def load_cleaned_data(dataset_name: Optional[str] = None) -> Union[pd.DataFrame,
         dataset_name = file_path.stem.replace('_cleaned', '')
         df = pd.read_csv(file_path)
         dataframes[dataset_name] = df
-        print(f"✓ Loaded {dataset_name}: {df.shape[0]:,} rows × {df.shape[1]} columns")
+        print(f"Loaded {dataset_name}: {df.shape[0]:,} rows × {df.shape[1]} columns")
     
     print("=" * 80)
     print(f"Successfully loaded {len(dataframes)} cleaned datasets")
@@ -147,16 +147,16 @@ if __name__ == "__main__":
         datasets = load_cleaned_data()
         
         print("\n" + "=" * 80)
-        print("✅ SUCCESS! All datasets loaded successfully!")
+        print("SUCCESS! All datasets loaded successfully!")
         print("=" * 80)
         
         print("\nDataset Summary:")
         print("-" * 80)
         for name, df in datasets.items():
-            print(f"  📊 {name:15} | {df.shape[0]:,} rows × {df.shape[1]:2} columns | {df.memory_usage(deep=True).sum() / (1024**2):.2f} MB")
+            print(f"  {name:15} | {df.shape[0]:,} rows × {df.shape[1]:2} columns | {df.memory_usage(deep=True).sum() / (1024**2):.2f} MB")
         
         print("\n" + "=" * 80)
-        print("DATA LOADER IS WORKING CORRECTLY! ✓")
+        print("DATA LOADER IS WORKING CORRECTLY!")
         print("=" * 80)
         print("\nYou can now use load_cleaned_data() in your code:")
         print("  from src.utils.data_loader import load_cleaned_data")
@@ -165,17 +165,17 @@ if __name__ == "__main__":
         
     except FileNotFoundError as e:
         print("\n" + "=" * 80)
-        print("❌ ERROR: Cleaned data not found!")
+        print("ERROR: Cleaned data not found!")
         print("=" * 80)
         print(f"\n{e}")
-        print("\n⚠️  Action Required:")
+        print("\nAction Required:")
         print("  1. Open and run: TopK-Airlines/EDA/explore.ipynb")
         print("  2. Execute all cells to generate cleaned datasets")
         print("  3. Then run this file again")
         print("\n")
     except Exception as e:
         print("\n" + "=" * 80)
-        print("❌ UNEXPECTED ERROR")
+        print("ERROR: UNEXPECTED ERROR")
         print("=" * 80)
         print(f"\n{e}")
         import traceback

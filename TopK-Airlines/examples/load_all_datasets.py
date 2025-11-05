@@ -47,9 +47,9 @@ def main():
                     'df': df,
                     'time': elapsed
                 }
-                print(f"\n✓ {dataset_name} loaded in {elapsed:.2f}s")
+                print(f"\n{dataset_name} loaded in {elapsed:.2f}s")
         except Exception as e:
-            print(f"\n❌ Error loading {dataset_name}: {e}")
+            print(f"\nERROR: Error loading {dataset_name}: {e}")
     
     # Summary
     print("\n" + "=" * 80)
@@ -57,7 +57,7 @@ def main():
     print("=" * 80)
     
     if all_results:
-        print(f"\n✅ Successfully loaded {len(all_results)}/4 datasets\n")
+        print(f"\nSuccessfully loaded {len(all_results)}/4 datasets\n")
         
         print(f"{'Dataset':<15} {'Records':<10} {'BST Height':<12} {'AVL Height':<12} {'RB Height':<12} {'Time':<10}")
         print("-" * 80)
@@ -74,10 +74,10 @@ def main():
             print(f"{dataset_name:<15} {len(df):<10,} {bst_height:<12} {avl_height:<12} {rb_height:<12} {elapsed:<10.2f}s")
         
         print("\n" + "=" * 80)
-        print("🎉 ALL DATASETS SUCCESSFULLY LOADED!")
+        print("SUCCESS: ALL DATASETS SUCCESSFULLY LOADED!")
         print("=" * 80)
         
-        print("\n💡 Key Observations:")
+        print("\nKey Observations:")
         print("   - AVL and Red-Black trees have lower heights (better balanced)")
         print("   - BST height varies based on insertion order")
         print("   - Larger datasets take more time to load")
@@ -85,8 +85,8 @@ def main():
         
         return all_results
     else:
-        print("\n❌ No datasets were loaded successfully.")
-        print("⚠️  Please run the EDA/explore.ipynb notebook first!")
+        print("\nERROR: No datasets were loaded successfully.")
+        print("Please run the EDA/explore.ipynb notebook first!")
         return None
 
 
