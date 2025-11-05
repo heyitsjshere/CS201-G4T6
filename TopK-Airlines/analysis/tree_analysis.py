@@ -146,7 +146,7 @@ def analyze_dataset_trees(dataset_name, df):
         trees = load_trees(dataset_name)
         print(f"Loaded {len(trees)} tree structures: {list(trees.keys())}")
     except Exception as e:
-        print(f"❌ Error loading trees: {e}")
+        print(f"ERROR: Error loading trees: {e}")
         return None
     
     analysis_results = {
@@ -263,7 +263,7 @@ def generate_summary_report(all_results):
                     summary['tree_comparisons'][tree_type]['avg_range_time'].append(range_times[0]['avg_time_ms'])
     
     # Generate key findings
-    print("\n📊 KEY FINDINGS:")
+    print("\nKEY FINDINGS:")
     
     # Find fastest tree for each operation
     for op_type in ['search', 'top_k', 'range_query']:
@@ -284,10 +284,10 @@ def generate_summary_report(all_results):
         if fastest_tree:
             finding = f"Fastest for {op_name}: {fastest_tree} ({fastest_time:.6f} ms avg)"
             summary['key_findings'].append(finding)
-            print(f"  • {finding}")
+            print(f"  - {finding}")
     
     # Tree height comparison
-    print("\n📏 TREE HEIGHTS:")
+    print("\nTREE HEIGHTS:")
     for dataset, info in summary['dataset_summaries'].items():
         print(f"  {dataset.upper()}:")
         for tree_name, height in info['tree_heights'].items():
@@ -306,13 +306,13 @@ def save_results(all_results, summary, output_dir):
     detailed_file = output_path / f"tree_analysis_detailed_{timestamp}.json"
     with open(detailed_file, 'w') as f:
         json.dump(all_results, f, indent=2)
-    print(f"\n💾 Detailed results saved to: {detailed_file}")
+    print(f"\nDetailed results saved to: {detailed_file}")
     
     # Save summary
     summary_file = output_path / f"tree_analysis_summary_{timestamp}.json"
     with open(summary_file, 'w') as f:
         json.dump(summary, f, indent=2)
-    print(f"💾 Summary saved to: {summary_file}")
+    print(f"Summary saved to: {summary_file}")
     
     # Save human-readable report
     report_file = output_path / f"tree_analysis_report_{timestamp}.txt"
@@ -356,7 +356,7 @@ def save_results(all_results, summary, output_dir):
         for finding in summary['key_findings']:
             f.write(f"• {finding}\n")
     
-    print(f"💾 Human-readable report saved to: {report_file}")
+    print(f"Human-readable report saved to: {report_file}")
 
 
 def main():
@@ -366,14 +366,14 @@ def main():
     print("=" * 80)
     
     # List all available trees
-    print("\n📋 Available saved trees:")
+    print("\nAvailable saved trees:")
     available_trees = list_saved_trees()
     
     # Datasets to analyze
     datasets = ['airline', 'airport', 'lounge', 'seat']
     
     # Load cleaned data for each dataset
-    print("\n📂 Loading cleaned datasets...")
+    print("\nLoading cleaned datasets...")
     all_data = load_cleaned_data()
     
     # Run analysis on each dataset
@@ -385,7 +385,7 @@ def main():
             if result:
                 all_results.append(result)
         else:
-            print(f"⚠️  Warning: {dataset_name} data not found")
+            print(f"WARNING: {dataset_name} data not found")
     
     # Generate summary report
     if all_results:
@@ -396,10 +396,10 @@ def main():
         save_results(all_results, summary, output_dir)
         
         print("\n" + "=" * 80)
-        print("✅ ANALYSIS COMPLETE!")
+        print("SUCCESS: ANALYSIS COMPLETE!")
         print("=" * 80)
     else:
-        print("\n❌ No results to analyze")
+        print("\nERROR: No results to analyze")
 
 
 if __name__ == "__main__":

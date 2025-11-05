@@ -35,7 +35,7 @@ def example_2_load_specific_trees():
     # Load only BST and AVL trees for airline dataset
     trees = load_trees('airline', tree_types=['BST', 'AVL'])
     
-    print("\n📊 Using loaded trees:")
+    print("\n Using loaded trees:")
     for tree_name, tree in trees.items():
         print(f"   {tree_name}: {tree.get_size():,} nodes, height {tree.get_height()}")
     
@@ -51,7 +51,7 @@ def example_3_load_all_trees():
     # Load all trees for airline dataset
     trees = load_trees('airline')
     
-    print("\n📊 All trees loaded:")
+    print("\n All trees loaded:")
     for tree_name, tree in trees.items():
         print(f"   {tree_name}: {tree.get_size():,} nodes, height {tree.get_height()}")
     
@@ -65,21 +65,21 @@ def example_4_perform_queries(trees):
     print("=" * 80)
     
     if not trees:
-        print("⚠️  No trees loaded. Run example_3_load_all_trees() first.")
+        print("  No trees loaded. Run example_3_load_all_trees() first.")
         return
     
     # Use any tree (they all have the same data)
     tree = trees['AVL']
     
     # Query 1: Get top 5 airlines
-    print("\n🔍 Query 1: Top 5 highest rated airlines")
+    print("\n Query 1: Top 5 highest rated airlines")
     print("-" * 80)
     top_5 = tree.get_top_k(5)
     for i, record in enumerate(top_5, 1):
         print(f"   {i}. {record['airline_name'][:40]:40} | Rating: {record['overall_rating']:.1f}")
     
     # Query 2: Search for specific rating
-    print("\n🔍 Query 2: Find all records with rating 5.0")
+    print("\n Query 2: Find all records with rating 5.0")
     print("-" * 80)
     results = tree.search(5.0)
     print(f"   Found {len(results)} records with perfect rating!")
@@ -87,13 +87,13 @@ def example_4_perform_queries(trees):
         print(f"   Examples: {', '.join([r['airline_name'][:20] for r in results[:3]])}")
     
     # Query 3: Range query
-    print("\n🔍 Query 3: Find all records with rating between 4.5 and 5.0")
+    print("\n Query 3: Find all records with rating between 4.5 and 5.0")
     print("-" * 80)
     high_rated = tree.get_range(4.5, 5.0)
     print(f"   Found {len(high_rated)} highly rated records")
     
     # Query 4: Count by rating
-    print("\n🔍 Query 4: Distribution of ratings")
+    print("\n Query 4: Distribution of ratings")
     print("-" * 80)
     all_records = tree.get_range(0, 10)
     rating_counts = {}
@@ -114,12 +114,12 @@ def example_5_compare_tree_performance(trees):
     print("=" * 80)
     
     if not trees:
-        print("⚠️  No trees loaded.")
+        print("  No trees loaded.")
         return
     
     import time
     
-    print("\n⏱️  Top-K query performance (k=100):")
+    print("\n  Top-K query performance (k=100):")
     print("-" * 80)
     for tree_name, tree in trees.items():
         start = time.time()
@@ -127,7 +127,7 @@ def example_5_compare_tree_performance(trees):
         elapsed = time.time() - start
         print(f"   {tree_name:12} | Time: {elapsed*1000:.3f}ms | Results: {len(results)}")
     
-    print("\n⏱️  Range query performance (4.0 to 5.0):")
+    print("\n  Range query performance (4.0 to 5.0):")
     print("-" * 80)
     for tree_name, tree in trees.items():
         start = time.time()
@@ -149,8 +149,8 @@ def main():
         available = example_1_list_available_trees()
         
         if not available:
-            print("\n⚠️  No saved trees found!")
-            print("\n💡 To create trees, run one of these:")
+            print("\n  No saved trees found!")
+            print("\n To create trees, run one of these:")
             print("   python src\\loaders\\load_airline_trees.py")
             print("   python src\\loaders\\load_airport_trees.py")
             print("   python src\\loaders\\load_lounge_trees.py")
@@ -170,10 +170,10 @@ def main():
         example_5_compare_tree_performance(all_trees)
         
         print("\n" + "=" * 80)
-        print("✅ ALL EXAMPLES COMPLETED!")
+        print(" ALL EXAMPLES COMPLETED!")
         print("=" * 80)
         
-        print("\n💡 Now you can use these patterns in your own code:")
+        print("\n Now you can use these patterns in your own code:")
         print("""
         from src.utils.tree_persistence import load_trees
         
@@ -188,9 +188,9 @@ def main():
         """)
         
     except FileNotFoundError as e:
-        print(f"\n❌ ERROR: {e}")
+        print(f"\n ERROR: {e}")
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\n Unexpected error: {e}")
         import traceback
         traceback.print_exc()
 

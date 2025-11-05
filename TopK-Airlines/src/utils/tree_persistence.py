@@ -29,12 +29,18 @@ def save_trees(trees, dataset_name, output_dir='data/trees'):
     
     saved_paths = {}
     
-    print(f"\n💾 Saving {dataset_name} trees to disk...")
+    print(f"\nSaving {dataset_name} trees to disk...")
     print("-" * 80)
     
     for tree_name, tree in trees.items():
         # Create filename
-        filename = f"{dataset_name}_{tree_name.lower().replace('-', '_')}_tree.pkl"
+        # Handle different naming conventions for autocomplete vs regular trees
+        if tree_name in ['Trie', 'TernarySearchTree', 'SortedArray']:
+            # Autocomplete structures use original name
+            filename = f"{dataset_name}_{tree_name}_tree.pkl"
+        else:
+            # Regular trees use lowercase with underscores
+            filename = f"{dataset_name}_{tree_name.lower().replace('-', '_')}_tree.pkl"
         filepath = output_path / filename
         
         # Save using pickle with highest protocol and recursion limit handling
@@ -57,13 +63,28 @@ def save_trees(trees, dataset_name, output_dir='data/trees'):
         # Get file size
         size_mb = filepath.stat().st_size / (1024 * 1024)
         
-        print(f"{tree_name:12} | Size: {tree.get_size():,} nodes | "
+        # Get size (handle both trees with get_size() and arrays with len())
+        try:
+            if hasattr(tree, 'get_size'):
+                size = tree.get_size()
+                size_label = "nodes"
+            elif hasattr(tree, '__len__'):
+                size = len(tree)
+                size_label = "items"
+            else:
+                size = 0
+                size_label = "items"
+        except:
+            size = 0
+            size_label = "items"
+        
+        print(f"{tree_name:20} | Size: {size:,} {size_label} | "
               f"File: {size_mb:.2f} MB | Time: {elapsed:.3f}s")
         
         saved_paths[tree_name] = str(filepath)
     
     print("-" * 80)
-    print(f"✓ All trees saved to: {output_path.absolute()}")
+    print(f"All trees saved to: {output_path.absolute()}")
     
     return saved_paths
 
@@ -90,31 +111,51 @@ def load_trees(dataset_name, tree_types=None, input_dir='data/trees'):
         )
     
     # Determine which trees to load
-    tree_name_map = {
-        'BST': f"{dataset_name}_bst_tree.pkl",
-        'AVL': f"{dataset_name}_avl_tree.pkl",
-        'Red-Black': f"{dataset_name}_red_black_tree.pkl",
-        'Trie': f"{dataset_name}_trie_tree.pkl"
-    }
+    # Check if this is an autocomplete dataset (has _autocomplete suffix)
+    is_autocomplete = dataset_name.endswith('_autocomplete')
     
     if tree_types is None:
-        tree_types = list(tree_name_map.keys())
+        # Auto-discover available structures
+        if is_autocomplete:
+            # Autocomplete structures naming
+            possible_types = ['Trie', 'TernarySearchTree', 'SortedArray']
+        else:
+            # Regular tree structures
+            possible_types = ['BST', 'AVL', 'Red-Black', 'Trie']
+        
+        # Check which files actually exist
+        tree_types = []
+        for tree_type in possible_types:
+            if is_autocomplete:
+                filename = f"{dataset_name}_{tree_type}_tree.pkl"
+            else:
+                filename = f"{dataset_name}_{tree_type.lower().replace('-', '_')}_tree.pkl"
+            if (input_path / filename).exists():
+                tree_types.append(tree_type)
+    
+    # Build tree_name_map based on what we're loading
+    tree_name_map = {}
+    for tree_type in tree_types:
+        if is_autocomplete:
+            tree_name_map[tree_type] = f"{dataset_name}_{tree_type}_tree.pkl"
+        else:
+            tree_name_map[tree_type] = f"{dataset_name}_{tree_type.lower().replace('-', '_')}_tree.pkl"
     
     trees = {}
     
-    print(f"\n📂 Loading {dataset_name} trees from disk...")
+    print(f"\nLoading {dataset_name} trees from disk...")
     print("-" * 80)
     
     for tree_type in tree_types:
         if tree_type not in tree_name_map:
-            print(f"⚠️  Unknown tree type: {tree_type}")
+            print(f"WARNING: Unknown tree type: {tree_type}")
             continue
         
         filename = tree_name_map[tree_type]
         filepath = input_path / filename
         
         if not filepath.exists():
-            print(f"⚠️  {tree_type:12} | File not found: {filename}")
+            print(f"WARNING: {tree_type:20} | File not found: {filename}")
             continue
         
         # Load using pickle
@@ -126,13 +167,28 @@ def load_trees(dataset_name, tree_types=None, input_dir='data/trees'):
         # Get file size
         size_mb = filepath.stat().st_size / (1024 * 1024)
         
-        print(f"✓ {tree_type:12} | Size: {tree.get_size():,} nodes | "
+        # Get size (handle both trees with get_size() and arrays with len())
+        try:
+            if hasattr(tree, 'get_size'):
+                size = tree.get_size()
+                size_label = "nodes"
+            elif hasattr(tree, '__len__'):
+                size = len(tree)
+                size_label = "items"
+            else:
+                size = 0
+                size_label = "items"
+        except:
+            size = 0
+            size_label = "items"
+        
+        print(f"{tree_type:20} | Size: {size:,} {size_label} | "
               f"File: {size_mb:.2f} MB | Time: {elapsed:.3f}s")
         
         trees[tree_type] = tree
     
     print("-" * 80)
-    print(f"✓ Loaded {len(trees)} tree(s) for {dataset_name}")
+    print(f"Loaded {len(trees)} tree(s) for {dataset_name}")
     
     return trees
 
@@ -150,14 +206,14 @@ def list_saved_trees(input_dir='data/trees'):
     input_path = Path(input_dir)
     
     if not input_path.exists():
-        print(f"⚠️  Trees directory not found at {input_path.absolute()}")
+        print(f"WARNING: Trees directory not found at {input_path.absolute()}")
         return {}
     
     # Find all pickle files
     tree_files = list(input_path.glob('*_tree.pkl'))
     
     if not tree_files:
-        print(f"⚠️  No saved trees found in {input_path.absolute()}")
+        print(f"WARNING: No saved trees found in {input_path.absolute()}")
         return {}
     
     # Group by dataset
@@ -185,7 +241,7 @@ def list_saved_trees(input_dir='data/trees'):
     print("=" * 80)
     
     for dataset, trees in datasets.items():
-        print(f"\n📊 Dataset: {dataset}")
+        print(f"\n Dataset: {dataset}")
         print("-" * 80)
         for tree_info in trees:
             print(f"   {tree_info['type']:20} | {tree_info['file']:40} | {tree_info['size_mb']:.2f} MB")

@@ -1,0 +1,75 @@
+================================================================================
+TREE DATA STRUCTURES ANALYSIS REPORT
+Generated: 2025-11-05 17:40:56
+================================================================================
+
+DATASET SUMMARIES
+--------------------------------------------------------------------------------
+
+AIRLINE Dataset:
+  Size: 27,284 records
+  Trees: AVL, Red-Black, Trie
+  Tree Heights:
+    AVL             - 16
+    Red-Black       - 25
+    Trie            - 3
+
+AIRPORT Dataset:
+  Size: 10,817 records
+  Trees: AVL, Red-Black, Trie
+  Tree Heights:
+    AVL             - 14
+    Red-Black       - 22
+    Trie            - 3
+
+LOUNGE Dataset:
+  Size: 1,470 records
+  Trees: BST, AVL, Red-Black, Trie
+  Tree Heights:
+    BST             - 370
+    AVL             - 12
+    Red-Black       - 17
+    Trie            - 3
+
+SEAT Dataset:
+  Size: 1,209 records
+  Trees: BST, AVL, Red-Black, Trie
+  Tree Heights:
+    BST             - 350
+    AVL             - 12
+    Red-Black       - 15
+    Trie            - 3
+
+
+PERFORMANCE COMPARISON
+--------------------------------------------------------------------------------
+
+BST Tree:
+  Datasets: lounge, seat
+  Avg Search Time: 0.101060 ms
+  Avg Top-K Time: 0.444050 ms
+  Avg Range Query Time: 0.243410 ms
+
+Trie Tree:
+  Datasets: airline, airport, lounge, seat
+  Avg Search Time: 0.012513 ms
+  Avg Top-K Time: 1.105317 ms
+  Avg Range Query Time: 1.144435 ms
+
+AVL Tree:
+  Datasets: airline, airport, lounge, seat
+  Avg Search Time: 0.604470 ms
+  Avg Top-K Time: 6.024383 ms
+  Avg Range Query Time: 1.655800 ms
+
+Red-Black Tree:
+  Datasets: airline, airport, lounge, seat
+  Avg Search Time: 0.513227 ms
+  Avg Top-K Time: 6.191367 ms
+  Avg Range Query Time: 1.909150 ms
+
+
+KEY FINDINGS
+--------------------------------------------------------------------------------
+• Fastest for Search: Trie (0.012513 ms avg)
+• Fastest for Top K: BST (0.444050 ms avg)

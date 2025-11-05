@@ -257,7 +257,7 @@ def compare_trees(trees: Dict[str, Any], dataset_name: str,
     results = []
     
     for tree_name, tree in trees.items():
-        print(f"\n🔍 Benchmarking {tree_name}...")
+        print(f"\nBenchmarking {tree_name}...")
         benchmark = FilterBenchmark(tree, tree_name, dataset_name)
         
         try:
@@ -267,11 +267,11 @@ def compare_trees(trees: Dict[str, Any], dataset_name: str,
             # Print summary
             time_stats = result['time_complexity']
             space_stats = result['space_complexity']
-            print(f"   ✓ Avg Time: {time_stats['avg_time_ms']:.3f}ms")
-            print(f"   ✓ Results: {time_stats['results_count']:,} ({result['selectivity_percent']:.2f}%)")
-            print(f"   ✓ Memory: {space_stats['memory_allocated_kb']:.2f} KB")
+            print(f"   Avg Time: {time_stats['avg_time_ms']:.3f}ms")
+            print(f"   Results: {time_stats['results_count']:,} ({result['selectivity_percent']:.2f}%)")
+            print(f"   Memory: {space_stats['memory_allocated_kb']:.2f} KB")
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"   ERROR: {e}")
     
     return results
 
@@ -309,7 +309,7 @@ def run_comprehensive_benchmark(trees: Dict[str, Any], dataset_name: str) -> Dic
     ]
     
     for min_rating, max_rating, desc in rating_ranges:
-        print(f"\n📊 Testing: {desc} (Rating {min_rating}-{max_rating})")
+        print(f"\nTesting: {desc} (Rating {min_rating}-{max_rating})")
         print("-" * 80)
         
         results = compare_trees(
@@ -328,7 +328,7 @@ def run_comprehensive_benchmark(trees: Dict[str, Any], dataset_name: str) -> Dic
     ]
     
     for field, value, condition, desc in field_tests:
-        print(f"\n📊 Testing: {desc} ({field}={value})")
+        print(f"\nTesting: {desc} ({field}={value})")
         print("-" * 80)
         
         results = compare_trees(
@@ -350,7 +350,7 @@ def run_comprehensive_benchmark(trees: Dict[str, Any], dataset_name: str) -> Dic
     ]
     
     for filters in multi_filters:
-        print(f"\n📊 Testing: Multi-criteria filter")
+        print(f"\nTesting: Multi-criteria filter")
         print(f"   Filters: {filters}")
         print("-" * 80)
         
