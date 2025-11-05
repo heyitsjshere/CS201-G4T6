@@ -3,7 +3,18 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Data files (raw, cleaned, and generated structures)
+# Note: Data can be regenerated using scripts in the project
 *.csv
+*.pkl
+# Ignore all contents of data folder but keep the folder structure
+TopK-Airlines/data/*
+!TopK-Airlines/data/.gitkeep
+# Keep subdirectories but ignore their contents
+!TopK-Airlines/data/*/
+TopK-Airlines/data/**/*
+# Keep .gitkeep files in subdirectories if any
+!TopK-Airlines/data/**/.gitkeep
 
 # C extensions
 *.so

@@ -165,13 +165,39 @@
             color: #999;
         }
 
+        .results-container {
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: auto;
+            margin-top: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .results-container::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        .results-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 8px;
+        }
+
+        .results-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 8px;
+        }
+
+        .results-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
             background: white;
-            border-radius: 8px;
-            overflow: hidden;
         }
 
         .results-table th {
@@ -180,11 +206,34 @@
             padding: 12px;
             text-align: left;
             font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .results-table td {
             padding: 10px;
             border-bottom: 1px solid #eee;
+            max-width: 500px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .results-table td:last-child {
+            max-width: 600px;
+        }
+
+        .read-more-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .read-more-link:hover {
+            color: #5568d3;
+            text-decoration: underline;
         }
 
         .results-table tr:hover {
@@ -313,8 +362,17 @@
                         <input type="text" id="autocompleteInput" placeholder="Type to search (e.g., 'Sin' for Singapore Airlines)">
                         <div class="search-results" id="autocompleteResults"></div>
                     </div>
+                    <div class="control-group">
+                        <label>Sort Results:</label>
+                        <select id="autocompleteSortOrder">
+                            <option value="none">No Sort</option>
+                            <option value="ascending">Ascending (Low to High)</option>
+                            <option value="descending" selected>Descending (High to Low)</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="metrics" id="autocompleteMetrics"></div>
+                <div id="autocompleteSearchResults"></div>
             </div>
 
             <!-- Problem 2: Filter by Rating -->
@@ -329,6 +387,10 @@
                     <div class="control-group">
                         <label>Max Rating:</label>
                         <input type="number" id="maxRating" min="0" max="10" step="0.1" value="10">
+                    </div>
+                    <div class="control-group">
+                        <label>Result Limit:</label>
+                        <input type="number" id="filterLimit" min="10" max="10000" value="100">
                     </div>
                     <div class="control-group">
                         <label>&nbsp;</label>
@@ -373,6 +435,7 @@
         let currentAutocompleteStructure = 'Trie';
         let currentFilterStructure = 'AVL';
         let currentSortStructure = 'tree_inorder';
+        let currentAutocompleteResults = []; // Store current autocomplete search results
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -423,9 +486,19 @@
                 btn.onclick = () => {
                     document.querySelectorAll(`#${containerId} .toggle-btn`).forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    if (type === 'autocomplete') currentAutocompleteStructure = structureValue;
-                    else if (type === 'filter') currentFilterStructure = structureValue;
-                    else if (type === 'sort') currentSortStructure = structureValue;
+                    if (type === 'autocomplete') {
+                        currentAutocompleteStructure = structureValue;
+                        // Clear autocomplete search results when structure changes
+                        clearAutocompleteResults();
+                    } else if (type === 'filter') {
+                        currentFilterStructure = structureValue;
+                        // Clear filter results when structure changes
+                        clearFilterResults();
+                    } else if (type === 'sort') {
+                        currentSortStructure = structureValue;
+                        // Clear sort results when structure changes
+                        clearSortResults();
+                    }
                 };
                 container.appendChild(btn);
             });
@@ -443,6 +516,21 @@
             document.getElementById('datasetSelect').addEventListener('change', async (e) => {
                 currentDataset = e.target.value;
                 await loadStructureInfo();
+                // Clear all results when dataset changes
+                clearAutocompleteResults();
+                clearFilterResults();
+                clearSortResults();
+            });
+            
+            // Add event listener for autocomplete sort order
+            document.getElementById('autocompleteSortOrder').addEventListener('change', (e) => {
+                if (currentAutocompleteResults.length > 0) {
+                    // Re-display results with new sort order
+                    const searchName = document.getElementById('autocompleteInput').value.trim();
+                    if (searchName) {
+                        displaySortedAutocompleteResults(searchName);
+                    }
+                }
             });
         }
 
@@ -498,6 +586,8 @@
                             item.onclick = () => {
                                 document.getElementById('autocompleteInput').value = result.name;
                                 resultsDiv.classList.remove('active');
+                                // Search for all rows of this airline
+                                searchAutocompleteResults(result.name);
                             };
                             resultsDiv.appendChild(item);
                         });
@@ -521,6 +611,7 @@
             
             const minRating = parseFloat(document.getElementById('minRating').value);
             const maxRating = parseFloat(document.getElementById('maxRating').value);
+            const limit = parseInt(document.getElementById('filterLimit').value);
             
             resultsDiv.innerHTML = '<div class="loading">Loading...</div>';
             
@@ -532,7 +623,8 @@
                         dataset: currentDataset,
                         min_rating: minRating,
                         max_rating: maxRating,
-                        structure: currentFilterStructure
+                        structure: currentFilterStructure,
+                        limit: limit
                     })
                 });
                 
@@ -540,7 +632,9 @@
                 
                 if (data.success) {
                     displayMetrics(metricsDiv, data.metrics, 'Filter');
-                    displayResults(resultsDiv, data.results.slice(0, 50), 'Filter Results');
+                    // Limit results on frontend if needed (API might not limit)
+                    const resultsToShow = limit ? data.results.slice(0, limit) : data.results;
+                    displayResults(resultsDiv, resultsToShow, 'Filter Results');
                 } else {
                     resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
                 }
@@ -579,7 +673,7 @@
                 
                 if (data.success) {
                     displayMetrics(metricsDiv, data.metrics, 'Sort');
-                    displayResults(resultsDiv, data.results.slice(0, 50), 'Sorted Results');
+                    displayResults(resultsDiv, data.results, 'Sorted Results');
                 } else {
                     resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
                 }
@@ -621,21 +715,173 @@
                              currentDataset === 'airport' ? 'airport_name' :
                              currentDataset === 'lounge' ? 'lounge_name' : 'airline_name';
             
-            let html = `<h3>${title} (showing ${Math.min(results.length, 50)} of ${results.length})</h3>`;
+            // Display all results in a scrollable container
+            let html = `<h3>${title} (${results.length} results)</h3>`;
+            html += '<div class="results-container">';
             html += '<table class="results-table"><thead><tr>';
             html += '<th>Name</th><th>Overall Rating</th><th>Details</th>';
             html += '</tr></thead><tbody>';
             
-            results.slice(0, 50).forEach(result => {
+            results.forEach((result, index) => {
                 const name = result[nameField] || result.name || 'N/A';
                 const rating = result.overall_rating || 0;
-                html += `<tr><td>${name}</td><td>${rating}</td><td>${JSON.stringify(result).substring(0, 100)}...</td></tr>`;
+                // Display content column - check common column names
+                let content = 'N/A';
+                if (result.content) {
+                    content = result.content;
+                } else if (result.review_content) {
+                    content = result.review_content;
+                } else if (result.review) {
+                    content = result.review;
+                } else if (result.review_text) {
+                    content = result.review_text;
+                } else if (result.comment) {
+                    content = result.comment;
+                } else if (result.text) {
+                    content = result.text;
+                }
+                
+                // Create unique ID for this content row
+                const contentId = `content-${index}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                // Escape HTML and prepare content
+                let contentDisplay = 'N/A';
+                let fullContent = 'N/A';
+                let isLong = false;
+                
+                if (content && content !== 'N/A' && typeof content === 'string') {
+                    // Escape HTML
+                    fullContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    if (fullContent.length > 300) {
+                        isLong = true;
+                        contentDisplay = fullContent.substring(0, 300);
+                    } else {
+                        contentDisplay = fullContent;
+                    }
+                }
+                
+                // Create content HTML with read more/less functionality
+                let contentHtml = '';
+                if (isLong) {
+                    contentHtml = `
+                        <div id="${contentId}-short">${contentDisplay}... <a href="#" onclick="toggleContent('${contentId}'); return false;" class="read-more-link">read more</a></div>
+                        <div id="${contentId}-full" style="display: none;">${fullContent} <a href="#" onclick="toggleContent('${contentId}'); return false;" class="read-more-link">read less</a></div>
+                    `;
+                } else {
+                    contentHtml = contentDisplay;
+                }
+                
+                html += `<tr><td>${name}</td><td>${rating}</td><td style="max-width: 600px; word-wrap: break-word;">${contentHtml}</td></tr>`;
             });
             
             html += '</tbody></table>';
+            html += '</div>';
             container.innerHTML = html;
+        }
+
+        // Search for all rows matching a specific name (after autocomplete selection)
+        async function searchAutocompleteResults(searchName) {
+            const resultsDiv = document.getElementById('autocompleteSearchResults');
+            const metricsDiv = document.getElementById('autocompleteMetrics');
+            
+            resultsDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/autocomplete/search`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: searchName,
+                        dataset: currentDataset,
+                        structure: currentAutocompleteStructure
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store results for sorting
+                    currentAutocompleteResults = data.results;
+                    displayMetrics(metricsDiv, data.metrics, 'Autocomplete');
+                    displaySortedAutocompleteResults(searchName);
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    currentAutocompleteResults = [];
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                currentAutocompleteResults = [];
+            }
+        }
+
+        // Display sorted autocomplete results
+        function displaySortedAutocompleteResults(searchName) {
+            const resultsDiv = document.getElementById('autocompleteSearchResults');
+            const sortOrder = document.getElementById('autocompleteSortOrder').value;
+            
+            if (currentAutocompleteResults.length === 0) {
+                return;
+            }
+            
+            // Sort results based on selected order
+            let sortedResults = [...currentAutocompleteResults];
+            
+            if (sortOrder === 'ascending') {
+                sortedResults.sort((a, b) => {
+                    const ratingA = parseFloat(a.overall_rating || 0);
+                    const ratingB = parseFloat(b.overall_rating || 0);
+                    return ratingA - ratingB;
+                });
+            } else if (sortOrder === 'descending') {
+                sortedResults.sort((a, b) => {
+                    const ratingA = parseFloat(a.overall_rating || 0);
+                    const ratingB = parseFloat(b.overall_rating || 0);
+                    return ratingB - ratingA;
+                });
+            }
+            // If sortOrder is 'none', keep original order (no sorting)
+            
+            displayResults(resultsDiv, sortedResults, `All Results for "${searchName}"`);
+        }
+
+        // Clear autocomplete search results
+        function clearAutocompleteResults() {
+            const resultsDiv = document.getElementById('autocompleteSearchResults');
+            resultsDiv.innerHTML = '';
+            currentAutocompleteResults = [];
+        }
+
+        // Clear filter results
+        function clearFilterResults() {
+            const resultsDiv = document.getElementById('filterResults');
+            resultsDiv.innerHTML = '';
+        }
+
+        // Clear sort results
+        function clearSortResults() {
+            const resultsDiv = document.getElementById('sortResults');
+            resultsDiv.innerHTML = '';
+        }
+
+        // Toggle content between short and full view
+        function toggleContent(contentId) {
+            const shortDiv = document.getElementById(`${contentId}-short`);
+            const fullDiv = document.getElementById(`${contentId}-full`);
+            
+            if (shortDiv && fullDiv) {
+                if (shortDiv.style.display === 'none') {
+                    // Show short, hide full
+                    shortDiv.style.display = 'block';
+                    fullDiv.style.display = 'none';
+                } else {
+                    // Show full, hide short
+                    shortDiv.style.display = 'none';
+                    fullDiv.style.display = 'block';
+                }
+            }
         }
     </script>
 </body>
 </html>
+
 

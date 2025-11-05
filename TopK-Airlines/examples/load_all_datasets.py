@@ -14,6 +14,7 @@ from loaders.load_airline_trees import load_airline_data_into_trees
 from loaders.load_airport_trees import load_airport_data_into_trees
 from loaders.load_lounge_trees import load_lounge_data_into_trees
 from loaders.load_seat_trees import load_seat_data_into_trees
+from utils.tree_persistence import save_trees
 
 
 def main():
@@ -25,13 +26,13 @@ def main():
     all_results = {}
     
     datasets = [
-        ('Airline', load_airline_data_into_trees),
-        ('Airport', load_airport_data_into_trees),
-        ('Lounge', load_lounge_data_into_trees),
-        ('Seat', load_seat_data_into_trees)
+        ('Airline', load_airline_data_into_trees, 'airline'),
+        ('Airport', load_airport_data_into_trees, 'airport'),
+        ('Lounge', load_lounge_data_into_trees, 'lounge'),
+        ('Seat', load_seat_data_into_trees, 'seat')
     ]
     
-    for dataset_name, loader_func in datasets:
+    for dataset_name, loader_func, dataset_key in datasets:
         print(f"\n{'='*80}")
         print(f"Processing {dataset_name} Dataset...")
         print('='*80)
@@ -48,6 +49,22 @@ def main():
                     'time': elapsed
                 }
                 print(f"\n{dataset_name} loaded in {elapsed:.2f}s")
+                
+                # Save trees to disk
+                try:
+                    trees_to_save = {}
+                    for name, tree in trees.items():
+                        # Skip BST if height is too large for pickle
+                        if name == 'BST' and hasattr(tree, 'get_height') and tree.get_height() > 1000:
+                            print(f"\nWARNING: Skipping {name} save (height {tree.get_height()} too large for pickle)")
+                        else:
+                            trees_to_save[name] = tree
+                    
+                    if trees_to_save:
+                        save_trees(trees_to_save, dataset_key)
+                except Exception as save_error:
+                    print(f"\nWARNING: Could not save {dataset_name} trees to disk: {save_error}")
+                    print("   Trees are still available in memory for current session.")
         except Exception as e:
             print(f"\nERROR: Error loading {dataset_name}: {e}")
     
