@@ -1,0 +1,8 @@
+# This file ensures the data directory is tracked by git
+# while all actual data files (CSV, pickle files, etc.) are ignored.
+#
+# To regenerate data:
+# 1. Place raw CSV files (airline.csv, airport.csv, lounge.csv, seat.csv) in this directory
+# 2. Run: python EDA/clean_data.py (creates cleaned/ directory)
+# 3. Run: python examples/load_all_datasets.py (creates trees/ directory)
+# 4. Run: python src/loaders/load_autocomplete_structures.py (adds autocomplete trees)
