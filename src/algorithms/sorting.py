@@ -28,12 +28,16 @@ class SortingAlgorithms:
         """
         import time
         import copy
+        import tracemalloc
         
         start_time = time.perf_counter()
         self.comparisons = 0
         
         # Create a copy to avoid modifying original
         arr_copy = copy.deepcopy(arr)
+        
+        # Start memory tracking AFTER the copy
+        tracemalloc.start()
         
         if key_func is None:
             key_func = lambda x: x['overall_rating'] if isinstance(x, dict) else x
@@ -66,6 +70,10 @@ class SortingAlgorithms:
         
         quicksort_recursive(0, len(arr_copy) - 1)
         
+        # Get memory usage
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        
         elapsed = (time.perf_counter() - start_time) * 1000
         
         return arr_copy, {
@@ -73,7 +81,7 @@ class SortingAlgorithms:
             'comparisons': self.comparisons,
             'time_ms': elapsed,
             'items_sorted': len(arr),
-            'memory_bytes': len(arr) * 100  # Approximate
+            'memory_bytes': peak  # Peak memory used during sorting
         }
     
     def mergesort(self, arr, key_func=None, reverse=False):
@@ -90,11 +98,16 @@ class SortingAlgorithms:
         """
         import time
         import copy
+        import tracemalloc
         
         start_time = time.perf_counter()
         self.comparisons = 0
         
+        # Create a copy to avoid modifying original
         arr_copy = copy.deepcopy(arr)
+        
+        # Start memory tracking AFTER the copy
+        tracemalloc.start()
         
         if key_func is None:
             key_func = lambda x: x['overall_rating'] if isinstance(x, dict) else x
@@ -135,6 +148,10 @@ class SortingAlgorithms:
         
         sorted_arr = mergesort_recursive(arr_copy)
         
+        # Get memory usage
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        
         elapsed = (time.perf_counter() - start_time) * 1000
         
         return sorted_arr, {
@@ -142,7 +159,7 @@ class SortingAlgorithms:
             'comparisons': self.comparisons,
             'time_ms': elapsed,
             'items_sorted': len(arr),
-            'memory_bytes': len(arr) * 100 * 2  # Merge sort uses extra space
+            'memory_bytes': peak  # Peak memory including auxiliary arrays
         }
     
     def timsort(self, arr, key_func=None, reverse=False):
@@ -161,16 +178,25 @@ class SortingAlgorithms:
         """
         import time
         import copy
+        import tracemalloc
         
         start_time = time.perf_counter()
         
+        # Create a copy to avoid modifying original
         arr_copy = copy.deepcopy(arr)
+        
+        # Start memory tracking AFTER the copy
+        tracemalloc.start()
         
         if key_func is None:
             key_func = lambda x: x['overall_rating'] if isinstance(x, dict) else x
         
         # Python's built-in sort
         arr_copy.sort(key=key_func, reverse=reverse)
+        
+        # Get memory usage
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
         
         elapsed = (time.perf_counter() - start_time) * 1000
         
@@ -183,7 +209,7 @@ class SortingAlgorithms:
             'comparisons': estimated_comparisons,  # Estimated
             'time_ms': elapsed,
             'items_sorted': len(arr),
-            'memory_bytes': len(arr) * 100
+            'memory_bytes': peak  # Actual peak memory used
         }
     
     def tree_inorder_sort(self, tree, reverse=False):
@@ -199,9 +225,13 @@ class SortingAlgorithms:
             tuple: (sorted_list, metrics_dict)
         """
         import time
+        import tracemalloc
         
         start_time = time.perf_counter()
         self.comparisons = 0
+        
+        # Start memory tracking
+        tracemalloc.start()
         
         results = []
         
@@ -225,6 +255,10 @@ class SortingAlgorithms:
             results.reverse()
             # Reverse is O(1) operation, no comparisons needed
         
+        # Get memory usage
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        
         elapsed = (time.perf_counter() - start_time) * 1000
         
         return results, {
@@ -232,7 +266,7 @@ class SortingAlgorithms:
             'comparisons': self.comparisons,
             'time_ms': elapsed,
             'items_sorted': len(results),
-            'memory_bytes': len(results) * 100
+            'memory_bytes': peak  # Actual peak memory used during traversal
         }
     
     def _inorder_traversal_helper(self, node, results):

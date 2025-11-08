@@ -331,14 +331,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Data Structures Performance Comparison</h1>
+            <h1>Data Structures Performance Comparison</h1>
             <p>Compare different data structures for autocomplete, filtering, and sorting operations</p>
         </div>
 
         <div class="content">
             <!-- Dataset Selection -->
             <div class="section">
-                <h2>📊 Dataset Selection</h2>
+                <h2>Dataset Selection</h2>
                 <div class="controls">
                     <div class="control-group">
                         <label>Select Dataset:</label>
@@ -354,7 +354,7 @@
 
             <!-- Problem 1: Autocomplete -->
             <div class="section">
-                <h2>1️⃣ Predictive Search (Autocomplete)</h2>
+                <h2>Problem 1 | Predictive Search (Autocomplete)</h2>
                 <div class="structure-toggle" id="autocompleteStructures"></div>
                 <div class="controls">
                     <div class="control-group search-box">
@@ -377,7 +377,7 @@
 
             <!-- Problem 2: Filter by Rating -->
             <div class="section">
-                <h2>2️⃣ Filter by Overall Rating</h2>
+                <h2>Problem 2 | Filter by Overall Rating</h2>
                 <div class="structure-toggle" id="filterStructures"></div>
                 <div class="controls">
                     <div class="control-group">
@@ -403,7 +403,7 @@
 
             <!-- Problem 3: Sort by Rating -->
             <div class="section">
-                <h2>3️⃣ Sort by Overall Rating</h2>
+                <h2>Problem 3 | Sort by Overall Rating</h2>
                 <div class="structure-toggle" id="sortStructures"></div>
                 <div class="controls">
                     <div class="control-group">
@@ -696,10 +696,6 @@
                 <div class="metric-card">
                     <h3>Memory</h3>
                     <div class="value">${(metrics.memory_bytes / 1024).toFixed(2)}<span class="unit"> KB</span></div>
-                </div>
-                <div class="metric-card">
-                    <h3>Results</h3>
-                    <div class="value">${metrics.results_count || metrics.count || 0}</div>
                 </div>
             `;
         }
