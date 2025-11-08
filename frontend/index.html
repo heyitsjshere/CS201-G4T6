@@ -13,21 +13,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0e27 url('images/network-bg.jpg') center/cover no-repeat fixed;
-            position: relative;
+            background: url('images/network-bg.jpg') center/cover no-repeat fixed;
+            background-size: cover;
             min-height: 100vh;
             padding: 20px;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(10, 14, 39, 0.7);
-            z-index: -1;
         }
 
         .container {
