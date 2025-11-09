@@ -3,6 +3,8 @@ Ternary Search Tree (TST) implementation for autocomplete functionality.
 More space-efficient than Trie while maintaining fast prefix matching.
 """
 
+import sys
+
 
 class TSTNode:
     """Node in a Ternary Search Tree."""
@@ -34,7 +36,8 @@ class TernarySearchTree:
         self.root = None
         self.size = 0
         self.comparisons = 0
-        self.memory_usage = 0
+        self._cached_memory = None  # Cached memory calculation
+        self._memory_dirty = True  # Flag to track if cache needs update
     
     def _normalize_string(self, s):
         """Normalize string for insertion (lowercase, strip)."""
@@ -45,7 +48,7 @@ class TernarySearchTree:
     def insert(self, key_string, data):
         """
         Insert a record into the TST.
-        
+
         Args:
             key_string (str): String key (e.g., airline name)
             data (dict): Complete record data
@@ -53,19 +56,18 @@ class TernarySearchTree:
         key = self._normalize_string(key_string)
         if not key:
             return
-        
+
         self.root = self._insert_recursive(self.root, key, 0, data)
         self.size += 1
-        self.memory_usage += len(str(data)) + 50  # Approximate per record
-    
+        self._memory_dirty = True  # Mark memory cache as dirty after insert
+
     def _insert_recursive(self, node, key, index, data):
         """Recursively insert into TST."""
         char = key[index]
         comparisons = 1
-        
+
         if node is None:
             node = TSTNode(char)
-            self.memory_usage += 100  # Approximate per node
         
         if char < node.char:
             node.left = self._insert_recursive(node.left, key, index, data)
@@ -99,8 +101,7 @@ class TernarySearchTree:
         import time
         start_time = time.perf_counter()
         comparisons = 0
-        initial_memory = self.memory_usage
-        
+
         normalized_prefix = self._normalize_string(prefix)
         if not normalized_prefix:
             return [], {
@@ -109,7 +110,7 @@ class TernarySearchTree:
                 'memory_bytes': 0,
                 'results_count': 0
             }
-        
+
         # Find the node where prefix ends using the recursive helper
         # The helper handles the complex TST traversal logic correctly
         node = self._find_prefix_node(self.root, normalized_prefix, 0)
@@ -118,25 +119,25 @@ class TernarySearchTree:
             return [], {
                 'comparisons': len(normalized_prefix),
                 'time_ms': elapsed,
-                'memory_bytes': self.memory_usage,
+                'memory_bytes': self.get_memory_usage(),
                 'results_count': 0
             }
-        
+
         # Collect all records from this node (including the node itself if it's an end node)
         # and all nodes in the middle subtree (continuations of the prefix)
         results = []
         comparisons = len(normalized_prefix)  # Base comparisons for finding the prefix
         comparisons = self._collect_records(node, results, comparisons, max_results)
-        
+
         elapsed = (time.perf_counter() - start_time) * 1000
         self.comparisons += comparisons
-        
+
         return results[:max_results], {
             'comparisons': comparisons,
             'time_ms': elapsed,
-            'memory_bytes': self.memory_usage,
+            'memory_bytes': self.get_memory_usage(),
             'results_count': len(results),
-            'memory_delta': self.memory_usage - initial_memory
+            'memory_delta': 0  # Not tracking delta with sys.getsizeof
         }
     
     def _find_prefix_node(self, node, prefix, index):
@@ -281,8 +282,37 @@ class TernarySearchTree:
         return self.comparisons
     
     def get_memory_usage(self):
-        """Get approximate memory usage in bytes."""
-        return self.memory_usage
+        """Get actual memory usage in bytes using sys.getsizeof with caching."""
+        if self._memory_dirty or self._cached_memory is None:
+            self._cached_memory = self._calculate_memory(self.root)
+            self._memory_dirty = False
+        return self._cached_memory
+
+    def _calculate_memory(self, node):
+        """Recursively calculate memory usage of the TST."""
+        if node is None:
+            return 0
+
+        # Size of the node object itself
+        memory = sys.getsizeof(node)
+
+        # Size of the data_list
+        memory += sys.getsizeof(node.data_list)
+
+        # Size of each data item in the list
+        for data in node.data_list:
+            memory += sys.getsizeof(data)
+            # Add size of dict contents
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    memory += sys.getsizeof(key) + sys.getsizeof(value)
+
+        # Recursively calculate memory for all three children
+        memory += self._calculate_memory(node.left)
+        memory += self._calculate_memory(node.middle)
+        memory += self._calculate_memory(node.right)
+
+        return memory
     
     def reset_comparisons(self):
         """Reset comparison counter."""
@@ -290,5 +320,5 @@ class TernarySearchTree:
     
     def __str__(self):
         """String representation of the TST."""
-        return f"TernarySearchTree(size={self.size}, height={self.get_height()}, memory={self.memory_usage} bytes)"
+        return f"TernarySearchTree(size={self.size}, height={self.get_height()}, memory={self.get_memory_usage()} bytes)"
 

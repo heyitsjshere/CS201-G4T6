@@ -3,6 +3,8 @@ String Trie (Prefix Tree) implementation for autocomplete functionality.
 Stores strings (e.g., airline names) for fast prefix matching.
 """
 
+import sys
+
 
 class StringTrieNode:
     """Node in a String Trie."""
@@ -26,7 +28,8 @@ class StringTrie:
         self.root = StringTrieNode()
         self.size = 0
         self.comparisons = 0  # Total comparisons across all operations
-        self.memory_usage = 0  # Approximate memory usage in bytes
+        self._cached_memory = None  # Cached memory calculation
+        self._memory_dirty = True  # Flag to track if cache needs update
     
     def _normalize_string(self, s):
         """Normalize string for insertion (lowercase, strip)."""
@@ -48,21 +51,20 @@ class StringTrie:
         
         node = self.root
         comparisons = 0
-        
+
         # Traverse/create path for each character
         for char in key:
             comparisons += 1
             if char not in node.children:
                 node.children[char] = StringTrieNode()
-                self.memory_usage += 50  # Approximate per node
             node = node.children[char]
-        
+
         # Store data at the end node
         node.is_end = True
         node.data_list.append(data)
         self.size += 1
         self.comparisons += comparisons
-        self.memory_usage += len(str(data))  # Approximate data size
+        self._memory_dirty = True  # Mark memory cache as dirty after insert
     
     def search_prefix(self, prefix, max_results=10):
         """
@@ -80,8 +82,7 @@ class StringTrie:
         import time
         start_time = time.perf_counter()
         comparisons = 0
-        initial_memory = self.memory_usage
-        
+
         normalized_prefix = self._normalize_string(prefix)
         if not normalized_prefix:
             return [], {
@@ -90,9 +91,9 @@ class StringTrie:
                 'memory_bytes': 0,
                 'results_count': 0
             }
-        
+
         node = self.root
-        
+
         # Traverse to the prefix node
         for char in normalized_prefix:
             comparisons += 1
@@ -102,24 +103,24 @@ class StringTrie:
                 return [], {
                     'comparisons': comparisons,
                     'time_ms': elapsed,
-                    'memory_bytes': self.memory_usage,
+                    'memory_bytes': self.get_memory_usage(),
                     'results_count': 0
                 }
             node = node.children[char]
-        
+
         # Collect all records under this prefix
         results = []
         comparisons = self._collect_records(node, results, comparisons, max_results)
-        
+
         elapsed = (time.perf_counter() - start_time) * 1000
         self.comparisons += comparisons
-        
+
         return results[:max_results], {
             'comparisons': comparisons,
             'time_ms': elapsed,
-            'memory_bytes': self.memory_usage,
+            'memory_bytes': self.get_memory_usage(),
             'results_count': len(results),
-            'memory_delta': self.memory_usage - initial_memory
+            'memory_delta': 0  # Not tracking delta with sys.getsizeof
         }
     
     def _collect_records(self, node, results, comparisons, max_results):
@@ -171,8 +172,39 @@ class StringTrie:
         return self.comparisons
     
     def get_memory_usage(self):
-        """Get approximate memory usage in bytes."""
-        return self.memory_usage
+        """Get actual memory usage in bytes using sys.getsizeof with caching."""
+        if self._memory_dirty or self._cached_memory is None:
+            self._cached_memory = self._calculate_memory(self.root)
+            self._memory_dirty = False
+        return self._cached_memory
+
+    def _calculate_memory(self, node):
+        """Recursively calculate memory usage of the trie."""
+        if node is None:
+            return 0
+
+        # Size of the node object itself
+        memory = sys.getsizeof(node)
+
+        # Size of the children dictionary
+        memory += sys.getsizeof(node.children)
+
+        # Size of the data_list
+        memory += sys.getsizeof(node.data_list)
+
+        # Size of each data item in the list
+        for data in node.data_list:
+            memory += sys.getsizeof(data)
+            # Add size of dict contents
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    memory += sys.getsizeof(key) + sys.getsizeof(value)
+
+        # Recursively calculate memory for all children
+        for child in node.children.values():
+            memory += self._calculate_memory(child)
+
+        return memory
     
     def reset_comparisons(self):
         """Reset comparison counter."""
@@ -180,5 +212,5 @@ class StringTrie:
     
     def __str__(self):
         """String representation of the Trie."""
-        return f"StringTrie(size={self.size}, height={self.get_height()}, memory={self.memory_usage} bytes)"
+        return f"StringTrie(size={self.size}, height={self.get_height()}, memory={self.get_memory_usage()} bytes)"
 
