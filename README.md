@@ -95,35 +95,6 @@ python analysis/tree_analysis.py
 
 Results will be saved to: `results/filtering/airline/benchmark_results.csv`
 
-## Project Structure
-
-```
-CS201-G4T6/
-├── src/
-│   ├── api/                    # Flask backend API
-│   │   └── app.py
-│   ├── data_structures/        # Data structure implementations
-│   │   ├── string_trie.py      # String-based Trie for autocomplete
-│   │   ├── ternary_search_tree.py  # TST for autocomplete
-│   │   ├── avl_tree.py
-│   │   ├── red_black_tree.py
-│   │   └── binary_search_tree.py
-│   ├── algorithms/
-│   │   └── sorting.py          # Sorting algorithms with metrics
-│   ├── loaders/                # Data loaders
-│   └── utils/                  # Utilities
-├── frontend/
-│   └── index.html              # Frontend interface
-├── analysis/                   # Analysis scripts
-├── tests/                      # Test files
-├── data/                       # Data files
-├── EDA/                        # Exploratory data analysis
-├── examples/                   # Usage examples
-├── experiments/                # Experiments
-├── results/                    # Analysis results
-└── requirements.txt            # Python dependencies
-```
-
 ## Features
 
 ### Interactive Frontend
@@ -150,29 +121,9 @@ CS201-G4T6/
 - The `venv` folder should be added to `.gitignore` (it's generated locally)
 - If you encounter permission errors, try: `python -m pip install -r requirements.txt`
 
-## Troubleshooting
-
-### Port Permission Errors
-
-If you see "An attempt was made to access a socket in a way forbidden by its access permissions":
-
-1. **Automatic Fix**: The application now automatically tries ports 3000-3009 and will use the first available one
-2. **Manual Fix**: Find what's using the port:
-   ```bash
-   # Windows
-   netstat -ano | findstr :3000
-   
-   # Linux/Mac
-   lsof -i :3000
-   ```
-3. **Run as Administrator** (Windows): Right-click terminal → "Run as administrator"
-4. **Use Different Port**: The app will automatically detect and use an available port
-
-See `TROUBLESHOOTING.md` for more detailed solutions.
 
 ## Documentation
 
-- `STEP_BY_STEP_GUIDE.md` - Detailed step-by-step guide
 - `DATA_STRUCTURES_ANALYSIS.md` - Analysis of data structures for each problem
 - `DATA_STRUCTURES_SUMMARY.md` - Quick reference table
 - `FRONTEND_SETUP.md` - Frontend setup and usage guide
