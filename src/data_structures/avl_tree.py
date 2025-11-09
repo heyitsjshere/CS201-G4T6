@@ -3,6 +3,8 @@ AVL Tree (Self-Balancing BST) implementation for storing airline data.
 Nodes are ordered by overall_rating with automatic balancing.
 """
 
+import sys
+
 
 class AVLNode:
     """Node in an AVL Tree."""
@@ -29,6 +31,8 @@ class AVLTree:
         """Initialize an empty AVL Tree."""
         self.root = None
         self.size = 0
+        self._cached_memory = None
+        self._memory_dirty = True
     
     def _get_height(self, node):
         """Get height of a node."""
@@ -78,6 +82,7 @@ class AVLTree:
         """
         self.root = self._insert_recursive(self.root, rating, data)
         self.size += 1
+        self._memory_dirty = True
     
     def _insert_recursive(self, node, rating, data):
         """Recursively insert and balance."""
@@ -203,6 +208,33 @@ class AVLTree:
     def get_size(self):
         """Get the number of nodes in the tree."""
         return self.size
+
+    def get_memory_usage(self):
+        """Get actual memory usage in bytes using sys.getsizeof with caching."""
+        if self._memory_dirty or self._cached_memory is None:
+            self._cached_memory = self._calculate_memory(self.root)
+            self._memory_dirty = False
+        return self._cached_memory
+
+    def _calculate_memory(self, node):
+        """Recursively calculate memory usage of the AVL tree."""
+        if node is None:
+            return 0
+
+        # Size of the node object itself
+        memory = sys.getsizeof(node)
+
+        # Size of the data stored in the node
+        memory += sys.getsizeof(node.data)
+        if isinstance(node.data, dict):
+            for key, value in node.data.items():
+                memory += sys.getsizeof(key) + sys.getsizeof(value)
+
+        # Recursively calculate memory for children
+        memory += self._calculate_memory(node.left)
+        memory += self._calculate_memory(node.right)
+
+        return memory
     
     def filter_by_rating(self, min_rating=None, max_rating=None):
         """

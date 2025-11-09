@@ -3,6 +3,8 @@ Red-Black Tree implementation for storing airline data.
 Nodes are ordered by overall_rating with self-balancing properties.
 """
 
+import sys
+
 
 class Color:
     """Colors for Red-Black Tree nodes."""
@@ -38,6 +40,8 @@ class RedBlackTree:
         self.NIL = RBNode(None, None, Color.BLACK)  # Sentinel node
         self.root = self.NIL
         self.size = 0
+        self._cached_memory = None
+        self._memory_dirty = True
     
     def insert(self, rating, data):
         """
@@ -72,6 +76,7 @@ class RedBlackTree:
             parent.right = new_node
         
         self.size += 1
+        self._memory_dirty = True
         self._fix_insert(new_node)
     
     def _fix_insert(self, node):

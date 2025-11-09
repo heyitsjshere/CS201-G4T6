@@ -113,11 +113,11 @@ class TernarySearchTree:
 
         # Find the node where prefix ends using the recursive helper
         # The helper handles the complex TST traversal logic correctly
-        node = self._find_prefix_node(self.root, normalized_prefix, 0)
+        node, comparisons = self._find_prefix_node(self.root, normalized_prefix, 0, 0)
         if node is None:
             elapsed = (time.perf_counter() - start_time) * 1000
             return [], {
-                'comparisons': len(normalized_prefix),
+                'comparisons': comparisons,
                 'time_ms': elapsed,
                 'memory_bytes': self.get_memory_usage(),
                 'results_count': 0
@@ -126,7 +126,6 @@ class TernarySearchTree:
         # Collect all records from this node (including the node itself if it's an end node)
         # and all nodes in the middle subtree (continuations of the prefix)
         results = []
-        comparisons = len(normalized_prefix)  # Base comparisons for finding the prefix
         comparisons = self._collect_records(node, results, comparisons, max_results)
 
         elapsed = (time.perf_counter() - start_time) * 1000
@@ -140,35 +139,41 @@ class TernarySearchTree:
             'memory_delta': 0  # Not tracking delta with sys.getsizeof
         }
     
-    def _find_prefix_node(self, node, prefix, index):
+    def _find_prefix_node(self, node, prefix, index, comparisons):
         """
         Find the node where the prefix ends.
         This recursively searches the TST to find the node corresponding to the last character of the prefix.
+
+        Returns:
+            tuple: (node, comparisons) - The node where prefix ends and number of comparisons made
         """
         if node is None:
-            return None
-        
+            return None, comparisons
+
         if index >= len(prefix):
             # We've matched the entire prefix, return this node
-            return node
-        
+            return node, comparisons
+
         char = prefix[index]
-        
+
         # Compare current node's character with the character we're looking for
+        comparisons += 1  # Count the comparison
         if char < node.char:
             # Character is smaller, search in left subtree
-            return self._find_prefix_node(node.left, prefix, index)
+            return self._find_prefix_node(node.left, prefix, index, comparisons)
         elif char > node.char:
             # Character is larger, search in right subtree
-            return self._find_prefix_node(node.right, prefix, index)
+            comparisons += 1  # Count the second comparison (elif)
+            return self._find_prefix_node(node.right, prefix, index, comparisons)
         else:
             # Found matching character
+            comparisons += 1  # Count the equality check
             if index == len(prefix) - 1:
                 # This is the last character of the prefix, return this node
-                return node
+                return node, comparisons
             else:
                 # There are more characters in the prefix, continue in middle subtree
-                return self._find_prefix_node(node.middle, prefix, index + 1)
+                return self._find_prefix_node(node.middle, prefix, index + 1, comparisons)
     
     def _collect_records(self, node, results, comparisons, max_results):
         """

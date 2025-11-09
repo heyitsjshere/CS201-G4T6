@@ -389,11 +389,10 @@ def filter_by_rating():
         if limit and limit > 0:
             results = results[:limit]
         
-        # Get memory usage (approximate) - still part of processing
+        # Get memory usage using tree's own method (accurate calculation)
         try:
-            from utils.performance_tracker import estimate_memory_usage_tree
-            if hasattr(tree, 'root'):
-                memory_usage = estimate_memory_usage_tree(tree.root)
+            if hasattr(tree, 'get_memory_usage'):
+                memory_usage = tree.get_memory_usage()
             else:
                 memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
         except:
