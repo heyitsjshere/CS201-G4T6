@@ -389,11 +389,14 @@ def filter_by_rating():
         if limit and limit > 0:
             results = results[:limit]
         
-        # Get memory usage (approximate) - still part of processing
+        # Get memory usage - use structure's own method if available
         try:
             from utils.performance_tracker import estimate_memory_usage_tree, estimate_memory_usage_hashmap
             
-            if structure_type == 'HashMap' or hasattr(tree, 'buckets'):
+            # Prefer structure's own get_memory_usage() method (for Trie structures)
+            if hasattr(tree, 'get_memory_usage'):
+                memory_usage = tree.get_memory_usage()
+            elif structure_type == 'HashMap' or hasattr(tree, 'buckets'):
                 # HashMap uses buckets, not tree nodes
                 memory_usage = estimate_memory_usage_hashmap(tree)
             elif hasattr(tree, 'root'):

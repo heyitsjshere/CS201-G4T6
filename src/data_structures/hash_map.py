@@ -3,6 +3,8 @@ HashMap implementation for storing records indexed by overall rating.
 Uses hash table with buckets for efficient exact lookups, but requires scanning for range queries.
 """
 
+import sys
+
 
 class HashMap:
     """
@@ -13,7 +15,7 @@ class HashMap:
     def __init__(self, initial_capacity=16, load_factor=0.75):
         """
         Initialize an empty HashMap.
-        
+
         Args:
             initial_capacity (int): Initial number of buckets
             load_factor (float): Load factor threshold for resizing
@@ -23,7 +25,8 @@ class HashMap:
         self.size = 0
         self.buckets = [[] for _ in range(self.capacity)]
         self.comparisons = 0
-        self.memory_usage = 0
+        self._cached_memory = None  # Cached memory calculation
+        self._memory_dirty = True  # Flag to track if cache needs update
     
     def _hash(self, key):
         """
@@ -75,8 +78,6 @@ class HashMap:
             # Create new entry for this rating
             bucket.append((rating, [data]))
             self.size += 1
-        
-        self.memory_usage += len(str(data)) + 50  # Approximate
     
     def insert(self, rating, data):
         """
@@ -92,8 +93,9 @@ class HashMap:
         # Check if resize is needed
         if (self.size / self.capacity) >= self.load_factor:
             self._resize()
-        
+
         self._insert_internal(rating, data)
+        self._memory_dirty = True  # Mark memory cache as dirty after insert
     
     def get_range(self, min_rating, max_rating):
         """
@@ -159,8 +161,38 @@ class HashMap:
         return self.comparisons
     
     def get_memory_usage(self):
-        """Get approximate memory usage in bytes."""
-        return self.memory_usage
+        """Get actual memory usage in bytes using sys.getsizeof with caching."""
+        if self._memory_dirty or self._cached_memory is None:
+            self._cached_memory = self._calculate_memory()
+            self._memory_dirty = False
+        return self._cached_memory
+
+    def _calculate_memory(self):
+        """Calculate actual memory usage of the HashMap."""
+        # Size of the HashMap object itself
+        memory = sys.getsizeof(self)
+
+        # Size of the buckets list
+        memory += sys.getsizeof(self.buckets)
+
+        # Size of each bucket and its contents
+        for bucket in self.buckets:
+            memory += sys.getsizeof(bucket)
+
+            # Size of each (rating, data_list) tuple in the bucket
+            for rating, data_list in bucket:
+                memory += sys.getsizeof(rating)
+                memory += sys.getsizeof(data_list)
+
+                # Size of each data item in the list
+                for data in data_list:
+                    memory += sys.getsizeof(data)
+                    # Add size of dict contents
+                    if isinstance(data, dict):
+                        for key, value in data.items():
+                            memory += sys.getsizeof(key) + sys.getsizeof(value)
+
+        return memory
     
     def reset_comparisons(self):
         """Reset comparison counter."""
