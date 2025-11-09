@@ -158,17 +158,17 @@ class TernarySearchTree:
         char = prefix[index]
 
         # Compare current node's character with the character we're looking for
-        comparisons += 1  # Count the comparison
+        # This is ONE comparison that results in three possible branches
+        comparisons += 1
+        
         if char < node.char:
             # Character is smaller, search in left subtree
             return self._find_prefix_node(node.left, prefix, index, comparisons)
         elif char > node.char:
             # Character is larger, search in right subtree
-            comparisons += 1  # Count the second comparison (elif)
             return self._find_prefix_node(node.right, prefix, index, comparisons)
         else:
-            # Found matching character
-            comparisons += 1  # Count the equality check
+            # Found matching character, move to next character in middle subtree
             if index == len(prefix) - 1:
                 # This is the last character of the prefix, return this node
                 return node, comparisons
