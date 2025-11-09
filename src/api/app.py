@@ -391,12 +391,18 @@ def filter_by_rating():
         
         # Get memory usage (approximate) - still part of processing
         try:
-            from utils.performance_tracker import estimate_memory_usage_tree
-            if hasattr(tree, 'root'):
+            from utils.performance_tracker import estimate_memory_usage_tree, estimate_memory_usage_hashmap
+            
+            if structure_type == 'HashMap' or hasattr(tree, 'buckets'):
+                # HashMap uses buckets, not tree nodes
+                memory_usage = estimate_memory_usage_hashmap(tree)
+            elif hasattr(tree, 'root'):
+                # Tree structures (AVL, Red-Black, BST, Trie)
                 memory_usage = estimate_memory_usage_tree(tree.root)
             else:
                 memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
-        except:
+        except Exception as e:
+            print(f"Warning: Memory estimation failed for {structure_type}: {e}")
             memory_usage = sys.getsizeof(tree) if hasattr(sys, 'getsizeof') else 0
         
         # Calculate elapsed time after all processing (including limit, memory calculation)

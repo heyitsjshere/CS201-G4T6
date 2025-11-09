@@ -5,6 +5,8 @@ Uses binary search for prefix matching.
 
 import bisect
 import time
+import sys
+from utils.performance_tracker import _deep_getsizeof
 
 
 class SortedArray:
@@ -124,8 +126,13 @@ class SortedArray:
         return self.comparisons
     
     def get_memory_usage(self):
-        """Get approximate memory usage in bytes."""
-        return self.memory_usage
+        """Get actual memory usage in bytes using deep calculation."""
+        visited = set()
+        memory = sys.getsizeof(self.data)
+        for normalized_key, original_name, data in self.data:
+            memory += sys.getsizeof(normalized_key) + sys.getsizeof(original_name)
+            memory += _deep_getsizeof(data, visited)
+        return memory
     
     def reset_comparisons(self):
         """Reset comparison counter."""

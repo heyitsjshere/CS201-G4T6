@@ -4,6 +4,7 @@ Stores strings (e.g., airline names) for fast prefix matching.
 """
 
 import sys
+from utils.performance_tracker import _deep_getsizeof
 
 
 class StringTrieNode:
@@ -178,10 +179,15 @@ class StringTrie:
             self._memory_dirty = False
         return self._cached_memory
 
-    def _calculate_memory(self, node):
-        """Recursively calculate memory usage of the trie."""
-        if node is None:
+    def _calculate_memory(self, node, visited=None):
+        """Recursively calculate memory usage of the trie with deep size calculation."""
+        if visited is None:
+            visited = set()
+            
+        if node is None or id(node) in visited:
             return 0
+        
+        visited.add(id(node))
 
         # Size of the node object itself
         memory = sys.getsizeof(node)
@@ -192,17 +198,13 @@ class StringTrie:
         # Size of the data_list
         memory += sys.getsizeof(node.data_list)
 
-        # Size of each data item in the list
+        # Deep size of each data item in the list
         for data in node.data_list:
-            memory += sys.getsizeof(data)
-            # Add size of dict contents
-            if isinstance(data, dict):
-                for key, value in data.items():
-                    memory += sys.getsizeof(key) + sys.getsizeof(value)
+            memory += _deep_getsizeof(data, visited)
 
         # Recursively calculate memory for all children
         for child in node.children.values():
-            memory += self._calculate_memory(child)
+            memory += self._calculate_memory(child, visited)
 
         return memory
     

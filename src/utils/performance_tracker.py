@@ -106,13 +106,60 @@ def estimate_memory_usage_tree(node, visited=None):
             for child in node.children:
                 memory += estimate_memory_usage_tree(child, visited)
     
-    # Add data
+    # Add data - use deep size for dictionaries to account for all keys/values
     if hasattr(node, 'data'):
-        memory += sys.getsizeof(node.data)
+        memory += _deep_getsizeof(node.data, visited)
     if hasattr(node, 'data_list'):
         memory += sys.getsizeof(node.data_list)
         for item in node.data_list:
-            memory += sys.getsizeof(item)
+            memory += _deep_getsizeof(item, visited)
     
     return memory
+
+
+def _deep_getsizeof(obj, visited):
+    """
+    Recursively calculate deep size of an object including all referenced objects.
+    This properly accounts for dictionaries, lists, and nested structures.
+    """
+    if id(obj) in visited:
+        return 0
+    
+    visited.add(id(obj))
+    size = sys.getsizeof(obj)
+    
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            size += _deep_getsizeof(key, visited)
+            size += _deep_getsizeof(value, visited)
+    elif isinstance(obj, (list, tuple, set)):
+        for item in obj:
+            size += _deep_getsizeof(item, visited)
+    
+    return size
+
+
+def estimate_memory_usage_hashmap(hash_map):
+    """
+    Estimate memory usage of a HashMap structure.
+    Traverses all buckets and deeply measures stored data.
+    """
+    if hash_map is None:
+        return 0
+    
+    visited = set()
+    total = sys.getsizeof(hash_map)
+    buckets = getattr(hash_map, 'buckets', None)
+    
+    if buckets is not None:
+        total += sys.getsizeof(buckets)
+        for bucket in buckets:
+            total += sys.getsizeof(bucket)
+            for rating, data_list in bucket:
+                total += sys.getsizeof(rating)
+                total += sys.getsizeof(data_list)
+                for item in data_list:
+                    total += _deep_getsizeof(item, visited)
+    
+    return total
 
